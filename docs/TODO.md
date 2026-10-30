@@ -6,8 +6,7 @@ bigger items are in [IDEAS.md](IDEAS.md); what is already proven is in
 
 ## Blocked on Jared
 
-- **Go on orchestrator TV control** (IDEAS.md): TV tools in the voice worker's tool set, reaching
-  the TV through Supabase and the companion app rather than the Pi. Proposed 2026-10-30, no answer yet.
+Nothing.
 
 ## Visible tests (need the TV on and someone awake in the bedroom)
 
@@ -22,14 +21,16 @@ bigger items are in [IDEAS.md](IDEAS.md); what is already proven is in
 
 ## Not started
 
-- **`tv` skill for Claude Code sessions**, pointing at this repo and carrying the on-screen lookup
-  method (IDEAS.md § Answering "what / who is on screen").
 - **Sidebar, next steps**: a voice/watch toggle for it (today it is `bin/tv sidebar on|off` only);
   check it over the Apple TV input; copy the hub token to the Pi (`~/.config/google-tv/hub-token`)
   so the Pi can show it.
 - **Side by side for real**: an app of ours that plays a YouTube embed (or an HDMI input via
   `TvView`, unverified) beside a panel, since nothing can resize another app on this TV.
-- **Companion app listening to Supabase** for commands, which the orchestrator tools need.
+- **Voice control, first spoken test** (VOICE.md): only `brightness` (read) and `now` were run end to
+  end, by writing rows directly. Say a few commands to the voice assistant; check `volume` set goes
+  through the app's AudioManager stepping the way `bin/tv volume` does through keys.
+- **Voice: power and inputs.** The app cannot do either; a voice "turn the TV off" currently has to
+  become a session. Worth a small adb-backed path on the Pi if he asks for it often.
 - **Accessibility service** in the companion app, for acting inside other apps without adb.
 - **Screensaver / hub view** on this TV (DreamService or a full-screen page).
 - **The rest of the picture menu** through `tcl_tv_display`: picture mode, colour, HDR,

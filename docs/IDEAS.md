@@ -20,6 +20,8 @@ driving the app underneath.
 
 ## TV control for the voice orchestrator
 
+**Built** (VOICE.md). The reasoning below is why it is shaped that way.
+
 The orchestrator loads no skills or CLAUDE.md; its instructions are its system prompt and its tool
 descriptions. And voice turns usually run on Fly, which cannot reach the TV on the LAN. So:
 

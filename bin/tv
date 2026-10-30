@@ -255,6 +255,12 @@ def sidebar(state="on", width=None):
     print(state)
 
 
+def link():
+    """(Re)start the app's connection to the hub that voice control rides (docs/VOICE.md)."""
+    sh("am", "start-foreground-service", "-n", f"{APP}/.TvLink")
+    print("started")
+
+
 def overlay(text_, seconds="5"):
     """A line of text in the top right corner over whatever is on screen, for `seconds`."""
     sh("am", "start-foreground-service", "-n", f"{APP}/.OverlayService",
@@ -265,7 +271,7 @@ COMMANDS = {
     "brightness": brightness, "contrast": contrast, "dynamic-contrast": dynamic_contrast, "night": night,
     "volume": volume, "power": power, "now": now,
     "open": open_url, "launch": launch, "input": input_, "key": key, "text": text,
-    "screen": screen, "screenshot": screenshot, "sidebar": sidebar, "overlay": overlay,
+    "screen": screen, "screenshot": screenshot, "sidebar": sidebar, "overlay": overlay, "link": link,
     "shell": lambda *c: print(sh(*c), end=""),
 }
 
