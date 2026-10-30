@@ -13,6 +13,7 @@ TV is not rooted; neither is possible (locked bootloader) or needed.
 | [docs/CAPABILITIES.md](docs/CAPABILITIES.md) | what can be controlled, each item marked verified or not, and the limits |
 | [docs/SETUP.md](docs/SETUP.md) | pairing a machine, discovery, what breaks the connection |
 | [docs/TCL-DISPLAY-SERVICE.md](docs/TCL-DISPLAY-SERVICE.md) | the vendor binder service behind brightness and the rest of the picture menu |
+| [docs/IDEAS.md](docs/IDEAS.md) | planned work: session sidebar overlay, orchestrator TV tools, how to answer "who is on screen" |
 
 ## `bin/tv`
 
