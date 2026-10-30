@@ -47,8 +47,11 @@ Re-derive them after an update rather than trusting this table:
 |---|---|
 | 26 / 27 | setPictureMode / getPictureMode |
 | 29 / 30 | setBrightness / getBrightness (Black Level; takes a window id, 0) |
+| 31 / 32 | setContrast / getContrast `(window, type, value, act)` / `(window)` |
+| 47 / 48 | setDynamicContrast / getDynamicContrast (0 off, 2 High) |
 | 100 / 101 | setBacklight / getBacklight (menu "Brightness") |
+| 108 / 109 | setLowBlueRay `(window, value, act)` / getLowBlueRay (reads 1 here) |
 | 182 | setPictureModeByType |
 | 172 / 173 | getHdrMode / setHdrMode |
 
-Only 100/101 and 30 have been exercised.
+Exercised: 100/101, 30, 31/32, 47/48, and the 109 read.

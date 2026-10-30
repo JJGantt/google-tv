@@ -102,11 +102,26 @@ def brightness(value=None):
     print(parcel_int(sh("service", "call", "tcl_tv_display", str(TX_GET_BACKLIGHT))))
 
 
-def volume(value=None):
-    if value is not None:
-        sh("cmd", "media_session", "volume", "--stream", "3", "--set", str(int(value)))
+def get_volume():
     out = sh("cmd", "media_session", "volume", "--stream", "3", "--get")
-    print(re.search(r"volume is (\d+)", out).group(1))
+    return int(re.search(r"volume is (\d+)", out).group(1))
+
+
+def volume(value=None):
+    """TCL's audio ignores `media_session volume --set` (the call succeeds and the
+    level does not move), so a target is reached one volume key at a time."""
+    if value is not None:
+        target = int(value)
+        if not 0 <= target <= 100:
+            raise SystemExit("volume is 0-100")
+        cur = get_volume()
+        while cur != target:
+            sh("input", "keyevent", "KEYCODE_VOLUME_UP" if target > cur else "KEYCODE_VOLUME_DOWN")
+            nxt = get_volume()
+            if nxt == cur:
+                raise SystemExit(f"volume stuck at {cur}")
+            cur = nxt
+    print(get_volume())
 
 
 def power(state=None):

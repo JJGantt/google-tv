@@ -11,9 +11,11 @@ to verified without doing it.
 | Read brightness | `tcl_tv_display` tx 101 → the menu's Settings → Display → Picture → Brightness | verified: read 0, menu showed 0 |
 | Set brightness | `tcl_tv_display` tx 100 `(applyType=0, value, act=2)` | verified: set 30 via binder, reopened menu showed 30; saved, not just applied |
 | Android `screen_brightness` | `settings put system screen_brightness` | **does nothing to the panel.** Android's own value moves; TCL's Brightness does not. Do not use it |
-| Rest of the picture menu | other `tcl_tv_display` calls (picture mode, contrast, colour, HDR, …) | unverified; codes are in TCL-DISPLAY-SERVICE.md |
+| Contrast | `tcl_tv_display` tx 31 `(window=0, type=0, value, act=2)`, read tx 32 | verified: 100 → 60, read back 60 |
+| Dynamic Contrast | tx 47 set / tx 48 read (0 off … 2 High) | verified: High → off |
+| Rest of the picture menu | other `tcl_tv_display` calls (picture mode, colour, HDR, …) | unverified; codes are in TCL-DISPLAY-SERVICE.md |
 | Read volume | `cmd media_session volume --stream 3 --get` (range 0–100) | verified: read 5 |
-| Set volume | same, `--set N` | unverified |
+| Set volume | `--set N` is **ignored** by TCL's audio (returns, level unchanged); `bin/tv` steps with `KEYCODE_VOLUME_UP/DOWN` and reads back after each press | verified: 5 → 4 with one key press. The key shows the volume bar briefly |
 | Power state | `dumpsys power` → `mWakefulness` | verified (read "Awake") |
 | Sleep / wake | `KEYCODE_SLEEP` / `KEYCODE_WAKEUP` | unverified. Whether the adb connection survives standby is the open question |
 | Open a specific YouTube video | `am start -a VIEW -d https://www.youtube.com/watch?v=<id> com.google.android.youtube.tv` | verified twice, the second time through `bin/tv open`: playing, title read back from the media session |
