@@ -16,7 +16,7 @@ to verified without doing it.
 | Set volume | same, `--set N` | unverified |
 | Power state | `dumpsys power` → `mWakefulness` | verified (read "Awake") |
 | Sleep / wake | `KEYCODE_SLEEP` / `KEYCODE_WAKEUP` | unverified. Whether the adb connection survives standby is the open question |
-| Open a specific YouTube video | `am start -a VIEW -d https://www.youtube.com/watch?v=<id> com.google.android.youtube.tv` | verified: video started playing, media session reported its title |
+| Open a specific YouTube video | `am start -a VIEW -d https://www.youtube.com/watch?v=<id> com.google.android.youtube.tv` | verified twice, the second time through `bin/tv open`: playing, title read back from the media session |
 | Deep links into other apps | same pattern with each app's URL | unverified per app |
 | Launch an app | `monkey -p <pkg> -c LEANBACK_LAUNCHER 1` | unverified |
 | Switch HDMI input | `content://android.media.tv/passthrough/com.tcl.tvinput%2F.TvPassThroughService%2FHW1<n>` | unverified. HW15–HW18 exist; HW15 = HDMI 1 is an assumption |
@@ -30,21 +30,33 @@ to verified without doing it.
 Installed apps with a launcher entry: YouTube, YouTube Music, YouTube TV, Netflix, Prime Video,
 Disney+, Hulu, Max, Tubi, Apple TV, Instagram, TCL TV+, TCL browser, Play Store.
 
-## A companion app on the TV (planned)
+## Companion app on the TV (`app/`)
 
 Writing and installing an app needs no developer account; that is only for publishing to the
-Play Store. Build on the Mac, `adb install`.
+Play Store. `app/build.sh` builds it with the bare SDK tools (no Gradle), then:
 
-An app has **less** access than the adb shell: it cannot inject key presses into other apps, and
-whether it may call `tcl_tv_display` is unverified (TCL may restrict it to system callers). What
-an app adds is that it lives on the TV:
+    adb install -r app/build/tvcompanion.apk
+    adb shell pm grant com.jaredgantt.tvcompanion android.permission.WRITE_SECURE_SETTINGS
+    adb shell appops set com.jaredgantt.tvcompanion SYSTEM_ALERT_WINDOW allow
 
-- **Keeps adb alive.** Granted `WRITE_SECURE_SETTINGS` once from adb, it can set
-  `adb_wifi_enabled=1` itself at boot, so a reboot that turns wireless debugging off heals
-  without anyone at the TV. Unverified.
-- **Overlays** over whatever is on screen, via `SYSTEM_ALERT_WINDOW` (grantable with
-  `appops set`). HDMI video is a hardware plane under Android's UI, and TCL's own settings
-  panel draws over the Apple TV picture, so overlays over HDMI are expected to work. Unverified.
+The two grants persist across reboots and reinstalls with `-r`; a full uninstall loses them.
+
+An app cannot inject key presses into other apps; the adb shell remains the way to drive other
+apps' UIs. Everything else checked so far, it can do itself:
+
+| capability | status |
+|---|---|
+| Call `tcl_tv_display` (read and set brightness) as an ordinary app | verified: `getBacklight` returned 0; `setBacklight(0, 0, 2)` returned 1 (accepted). No hidden-API workaround needed |
+| Write `adb_wifi_enabled=1` (WRITE_SECURE_SETTINGS) | verified when the receiver is triggered by hand |
+| Re-enable wireless debugging on a real reboot | unverified. Needs a reboot; TCL may also hold back boot broadcasts for apps it has not whitelisted |
+| Overlay permission | verified granted (`canDrawOverlays=true`) |
+| Overlay visible over an HDMI input | unverified. HDMI video is a hardware plane under Android's UI, and TCL's own settings panel draws over the Apple TV picture, so it is expected to work |
+
+Probes run invisibly: `am broadcast -n com.jaredgantt.tvcompanion/.ProbeReceiver` (results in
+`logcat`, tag `TvCompanion`). The overlay is
+`am start-foreground-service -n com.jaredgantt.tvcompanion/.OverlayService --es text "…" --ei seconds 5`.
+
+Not built yet:
 - **Accessibility service** (enabled once in settings, or from adb via
   `enabled_accessibility_services`) can read and act inside other apps' UIs.
 - **Listening to Supabase directly**, so commands reach the TV with no Pi in the path.
