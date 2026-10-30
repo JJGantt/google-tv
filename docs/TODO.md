@@ -33,10 +33,8 @@ bigger items are in [IDEAS.md](IDEAS.md); what is already proven is in
 - **Accessibility service** in the companion app, for acting inside other apps without adb.
 - **Screensaver / hub view** on this TV (DreamService or a full-screen page).
 - **The rest of the picture menu** through `tcl_tv_display`: picture mode, colour, HDR,
-  blue-light level. Codes are in TCL-DISPLAY-SERVICE.md; only brightness, contrast and dynamic
-  contrast are wired. Contrast can go below 60 if 60 is still too bright at night.
-- **A sleep-time preset** (brightness 0, contrast down, dynamic contrast off) as one command,
-  instead of the separate calls made by hand on 2026-10-30.
+  blue-light level. Codes are in TCL-DISPLAY-SERVICE.md; brightness, contrast and dynamic
+  contrast are wired (`bin/tv night` sets all three). Contrast can go below 60 if 60 is still too bright at night.
 
 ## Decided against
 

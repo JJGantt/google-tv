@@ -21,6 +21,9 @@ TV is not rooted; neither is possible (locked bootloader) or needed.
 One script, stdlib Python, runs the same on the Mac and the Pi (both are paired).
 
     bin/tv brightness [0-100]     # TCL "Brightness" = panel backlight; prints the value the TV reports
+    bin/tv contrast [0-100]
+    bin/tv dynamic-contrast [0-2] # 0 off, 1 low, 2 high
+    bin/tv night                  # brightness 0, contrast 60, dynamic contrast off: watching in bed
     bin/tv volume [0-100]
     bin/tv power [on|off]
     bin/tv now                    # foreground app + what is playing
@@ -31,6 +34,8 @@ One script, stdlib Python, runs the same on the Mac and the Pi (both are paired)
     bin/tv text "<string>"        # types into the focused field
     bin/tv screen                 # on-screen text with tap coordinates; * marks the focused element
     bin/tv screenshot [path]
+    bin/tv sidebar on [0-1]|off   # the focused session, see-through, down the right (width as a fraction)
+    bin/tv overlay "<text>" [s]   # one line in the top-right corner for s seconds
     bin/tv shell <cmd...>
 
 Every setter prints the value read back from the TV afterwards, never the value requested.

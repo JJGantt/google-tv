@@ -19,8 +19,13 @@ STATE = Path.home() / ".cache" / "google-tv-addr"
 
 # com.tcl.tv.display.ITvDisplayManagerService transaction codes (decompiled
 # from /system_ext/framework/com.tcl.tv.display.jar; see docs/TCL-DISPLAY-SERVICE.md).
+TX_SET_CONTRAST = 31
+TX_GET_CONTRAST = 32
+TX_SET_DYNAMIC_CONTRAST = 47
+TX_GET_DYNAMIC_CONTRAST = 48
 TX_SET_BACKLIGHT = 100
 TX_GET_BACKLIGHT = 101
+WINDOW = 0
 APPLY_CURRENT_MODE = 0
 ACT_EXEC_SAVE = 2
 
@@ -90,16 +95,46 @@ def parcel_int(out):
     return int(words[1], 16)
 
 
-def brightness(value=None):
+def display(code, *args):
+    """One tcl_tv_display call with int arguments; returns its int result."""
+    return parcel_int(sh("service", "call", "tcl_tv_display", str(code), *[x for a in args for x in ("i32", str(a))]))
+
+
+def picture(name, get_code, set_args, value=None, hi=100):
     if value is not None:
         v = int(value)
-        if not 0 <= v <= 100:
-            raise SystemExit("brightness is 0-100")
-        ok = parcel_int(sh("service", "call", "tcl_tv_display", str(TX_SET_BACKLIGHT),
-                           "i32", str(APPLY_CURRENT_MODE), "i32", str(v), "i32", str(ACT_EXEC_SAVE)))
-        if not ok:
-            raise SystemExit("TV refused the brightness change")
-    print(parcel_int(sh("service", "call", "tcl_tv_display", str(TX_GET_BACKLIGHT))))
+        if not 0 <= v <= hi:
+            raise SystemExit(f"{name} is 0-{hi}")
+        if not display(*set_args(v)):
+            raise SystemExit(f"TV refused the {name} change")
+    return display(*get_code)
+
+
+def brightness(value=None):
+    print(picture("brightness", (TX_GET_BACKLIGHT,),
+                  lambda v: (TX_SET_BACKLIGHT, APPLY_CURRENT_MODE, v, ACT_EXEC_SAVE), value))
+
+
+def contrast(value=None):
+    print(picture("contrast", (TX_GET_CONTRAST, WINDOW),
+                  lambda v: (TX_SET_CONTRAST, WINDOW, APPLY_CURRENT_MODE, v, ACT_EXEC_SAVE), value))
+
+
+def dynamic_contrast(value=None):
+    """0 off, 1 low, 2 high (the menu's Dynamic Contrast)."""
+    print(picture("dynamic contrast", (TX_GET_DYNAMIC_CONTRAST, WINDOW),
+                  lambda v: (TX_SET_DYNAMIC_CONTRAST, WINDOW, APPLY_CURRENT_MODE, v, ACT_EXEC_SAVE), value, hi=2))
+
+
+# The settings he chose for watching in bed on 2026-10-30.
+NIGHT = {"brightness": 0, "contrast": 60, "dynamic_contrast": 0}
+
+
+def night():
+    """The dim picture for watching in bed, in one step; prints what the TV reports for each."""
+    for name, value in NIGHT.items():
+        print(name, end=" ")
+        globals()[name](value)
 
 
 def get_volume():
@@ -227,7 +262,8 @@ def overlay(text_, seconds="5"):
 
 
 COMMANDS = {
-    "brightness": brightness, "volume": volume, "power": power, "now": now,
+    "brightness": brightness, "contrast": contrast, "dynamic-contrast": dynamic_contrast, "night": night,
+    "volume": volume, "power": power, "now": now,
     "open": open_url, "launch": launch, "input": input_, "key": key, "text": text,
     "screen": screen, "screenshot": screenshot, "sidebar": sidebar, "overlay": overlay,
     "shell": lambda *c: print(sh(*c), end=""),
