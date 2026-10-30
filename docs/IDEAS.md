@@ -16,9 +16,7 @@ driving the app underneath.
   app of ours laying out a YouTube embed beside the sidebar, or `android.media.tv.TvView` for an
   HDMI input (whether a third-party app may tune the TCL passthrough inputs is unverified).
   Netflix-style apps cannot be embedded.
-- Needs: a narrow hub page for one session (the phone's session view, `status-hub/cards/repos.js`,
-  is the obvious source), and the hub's device token on the TV. Placing that token needs Jared:
-  the token-handling step was refused to the agent.
+- **Built** (CAPABILITIES.md § Sidebar): `/tv-sidebar` on the hub, `SidebarService` in the app.
 
 ## TV control for the voice orchestrator
 

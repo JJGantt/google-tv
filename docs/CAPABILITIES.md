@@ -58,6 +58,19 @@ Probes run invisibly: `am broadcast -n com.jaredgantt.tvcompanion/.ProbeReceiver
 `logcat`, tag `TvCompanion`). The overlay is
 `am start-foreground-service -n com.jaredgantt.tvcompanion/.OverlayService --es text "…" --ei seconds 5`.
 
+### Sidebar (`bin/tv sidebar on|off`)
+
+The hub's `/tv-sidebar` page (status-hub docs/HUB-INTERNALS.md § The TV sidebar) in a WebView overlay
+down the right 30% of the screen (`--ef width` / `bin/tv sidebar on 0.25` to change it): the focused
+session, live, see-through, over whatever is playing. Verified 2026-10-30 over YouTube: it rendered
+the session as it updated, and the remote still drove the video. Over HDMI unverified.
+
+It signs in with the hub's device token, which `bin/tv sidebar on` pushes into the app every time
+(`ConfigReceiver`) from `~/.config/google-tv/hub-token` on the machine running it. That file is
+per machine and never in the repo: the Mac has one; the Pi needs a copy before it can show the
+sidebar. Every adb entry point of the app requires `android.permission.DUMP`, which the adb shell
+holds and an ordinary app does not, so nothing else on the TV can push a token or draw through them.
+
 Not built yet:
 - **Accessibility service** (enabled once in settings, or from adb via
   `enabled_accessibility_services`) can read and act inside other apps' UIs.

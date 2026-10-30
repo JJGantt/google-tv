@@ -198,10 +198,38 @@ def screenshot(path="tv.png"):
     print(path)
 
 
+APP = "com.jaredgantt.tvcompanion"
+# The hub's device token, kept per machine outside the repo and pushed into the app on demand.
+HUB_TOKEN_FILE = Path.home() / ".config" / "google-tv" / "hub-token"
+
+
+def sidebar(state="on", width=None):
+    """The focused session in a see-through strip down the right (docs/CAPABILITIES.md § Sidebar).
+    `token` pushes this machine's hub token into the app; `on` does that too, so it is never stale."""
+    if state in ("on", "token"):
+        if not HUB_TOKEN_FILE.exists():
+            raise SystemExit(f"no hub token at {HUB_TOKEN_FILE}")
+        sh("am", "broadcast", "-n", f"{APP}/.ConfigReceiver", "--es", "hub_token", HUB_TOKEN_FILE.read_text().strip())
+    if state == "on":
+        extra = ["--ef", "width", str(float(width))] if width else []
+        sh("am", "start-foreground-service", "-n", f"{APP}/.SidebarService", "-a", "show", *extra)
+    elif state == "off":
+        sh("am", "start-foreground-service", "-n", f"{APP}/.SidebarService", "-a", "hide")
+    elif state != "token":
+        raise SystemExit("sidebar on [width 0-1]|off|token")
+    print(state)
+
+
+def overlay(text_, seconds="5"):
+    """A line of text in the top right corner over whatever is on screen, for `seconds`."""
+    sh("am", "start-foreground-service", "-n", f"{APP}/.OverlayService",
+       "--es", "text", text_, "--ei", "seconds", str(int(seconds)))
+
+
 COMMANDS = {
     "brightness": brightness, "volume": volume, "power": power, "now": now,
     "open": open_url, "launch": launch, "input": input_, "key": key, "text": text,
-    "screen": screen, "screenshot": screenshot,
+    "screen": screen, "screenshot": screenshot, "sidebar": sidebar, "overlay": overlay,
     "shell": lambda *c: print(sh(*c), end=""),
 }
 

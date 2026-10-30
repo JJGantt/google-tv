@@ -6,10 +6,6 @@ bigger items are in [IDEAS.md](IDEAS.md); what is already proven is in
 
 ## Blocked on Jared
 
-- **Hub sign-in for the TV app.** The sidebar overlay (and any hub page the TV shows) needs the hub's
-  device token stored in the companion app. Reading that token off the Pi and placing it was refused
-  to the agent, so he either allows the agent to handle it or picks another way for the TV to
-  authenticate.
 - **Go on orchestrator TV control** (IDEAS.md): TV tools in the voice worker's tool set, reaching
   the TV through Supabase and the companion app rather than the Pi. Proposed 2026-10-30, no answer yet.
 
@@ -28,7 +24,9 @@ bigger items are in [IDEAS.md](IDEAS.md); what is already proven is in
 
 - **`tv` skill for Claude Code sessions**, pointing at this repo and carrying the on-screen lookup
   method (IDEAS.md § Answering "what / who is on screen").
-- **Session sidebar overlay** (IDEAS.md), after the sign-in question.
+- **Sidebar, next steps**: a voice/watch toggle for it (today it is `bin/tv sidebar on|off` only);
+  check it over the Apple TV input; copy the hub token to the Pi (`~/.config/google-tv/hub-token`)
+  so the Pi can show it.
 - **Side by side for real**: an app of ours that plays a YouTube embed (or an HDMI input via
   `TvView`, unverified) beside a panel, since nothing can resize another app on this TV.
 - **Companion app listening to Supabase** for commands, which the orchestrator tools need.
