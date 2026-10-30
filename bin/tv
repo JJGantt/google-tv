@@ -181,8 +181,10 @@ def power(state=None):
     """on: Wake-on-LAN, then adb's KEYCODE_WAKEUP if the TV is still off a few seconds later.
     off: KEYCODE_SLEEP. Prints the state the TV reports afterwards."""
     if state == "on":
-        wake()
+        # One packet is not always enough after hours in standby (docs/POWER.md), so it is resent
+        # every second until the TV reports Awake.
         for _ in range(5):
+            wake()
             time.sleep(1)
             if is_on():
                 break

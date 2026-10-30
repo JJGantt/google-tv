@@ -13,15 +13,18 @@ wake comes from the Pi:
 1. A `tv_commands` row is inserted (`power`, or `open` / `launch`).
 2. **The Pi** (data-layer `tvHome.ts`, inside data-http, `HOME_AGENT=1`) is subscribed to the same
    inserts. It does the whole of `power` with `bin/tv power on|off` and answers the row itself.
-   For `open` / `launch` it sends `bin/tv wake` (a Wake-on-LAN packet, harmless when the TV is on).
+   For `open` / `launch` it runs `bin/tv power on` too (harmless when the TV is on). If the TV still
+   reports off afterwards, it answers the row `the TV is off and did not wake`, so the caller hears
+   that in seconds instead of waiting out its 45s timeout and going to investigate.
 3. **The hub** ignores `power` rows. When the TV is not connected, it holds `open` / `launch` rows
    instead of failing them; every other op answers `the TV is off (its app is not connected)`.
 4. The screen comes on. `TvLink` gets `ACTION_SCREEN_ON` (`ScreenOn.java`), cuts its reconnect
    backoff short and reconnects. The hub replays unanswered rows from the last 60s (`TV_REPLAY_MS`)
    to the newly connected app, which does the command.
 
-`bin/tv power on` sends Wake-on-LAN, waits up to 5s for `mWakefulness=Awake`, and then falls back to
-adb's `KEYCODE_WAKEUP`. `power off` is adb's `KEYCODE_SLEEP`.
+`bin/tv power on` sends Wake-on-LAN once a second for up to 5s until `mWakefulness=Awake`, then falls
+back to adb's `KEYCODE_WAKEUP`. One packet is not enough: an `open` on 2026-10-30, after about two hours
+in standby, sent a single packet and the TV took 55s to come on. `power off` is adb's `KEYCODE_SLEEP`.
 
 ## It depends on Network standby
 
