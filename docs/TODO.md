@@ -6,14 +6,14 @@ bigger items are in [IDEAS.md](IDEAS.md); what is already proven is in
 
 ## Blocked on Jared
 
-Nothing.
+- A go-ahead to switch the TV off and on a few times for the wake tests (above).
 
 ## Visible tests (need the TV on and someone awake in the bedroom)
 
 - An overlay over the Apple TV (HDMI 1) picture: `OverlayService` is built and permitted, never shown.
-- `bin/tv power off` then `on`: does the adb connection survive standby, and does wake work over adb?
-  If not, the Android TV remote protocol (ports 6466/6467, needs a one-time on-screen code) is the
-  other way to wake it.
+- **Waking the TV remotely** (POWER.md): network standby is now on; run `tools/wake-probe.py` with
+  `cast`, `wol` and `adb` to find which wake works, then build the Pi-side wake so voice can put
+  something on with the TV off. Needs Jared's go-ahead, because each run turns the screen off and on.
 - `bin/tv input hdmi1`: HW15 = HDMI 1 is assumed, not checked.
 - A real reboot: does wireless debugging come back by itself, and does `BootReceiver` fire on this
   TCL build (it may hold boot broadcasts back from non-whitelisted apps)?
@@ -29,8 +29,8 @@ Nothing.
 - **Voice control, first spoken test** (VOICE.md): only `brightness` (read) and `now` were run end to
   end, by writing rows directly. Say a few commands to the voice assistant; check `volume` set goes
   through the app's AudioManager stepping the way `bin/tv volume` does through keys.
-- **Voice: power and inputs.** The app cannot do either; a voice "turn the TV off" currently has to
-  become a session. Worth a small adb-backed path on the Pi if he asks for it often.
+- **Voice: power and inputs.** The app cannot do either. Waking is in POWER.md and comes first.
+  Turning off and inputs can ride on the same Pi-side path once it exists.
 - **Accessibility service** in the companion app, for acting inside other apps without adb.
 - **Screensaver / hub view** on this TV (DreamService or a full-screen page).
 - **The rest of the picture menu** through `tcl_tv_display`: picture mode, colour, HDR,

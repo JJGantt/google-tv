@@ -30,8 +30,16 @@ nothing here talks to the TV directly; Supabase and the hub carry it:
 
     adb shell cmd notification allow_listener com.jaredgantt.tvcompanion/.Listener
 
+**Choosing a video** is the data MCP's `youtube` tool (data-layer `src/youtube.ts`): `search` gives
+real video ids, and `video` gives one video's full description and chapters. Both read the JSON that
+YouTube embeds in its pages. WebFetch cannot stand in for it: it strips scripts and truncates the page,
+so it sees neither a description nor search results. Transcripts are out of reach: the caption and
+transcript endpoints now require a token that only YouTube's own player mints.
+
 ## What it cannot do, and why
 
-An app cannot turn the TV off or on (`goToSleep` is a system permission), switch HDMI inputs
+An app cannot turn the TV off or on (`goToSleep` is a system permission). While the TV is off, the
+app is not running at all, so a command fails with `the TV is not connected`. Waking it from the
+network is POWER.md, switch HDMI inputs
 (unverified, untried), press keys inside another app, or take a screenshot. Those stay with `bin/tv`
 over adb, so the orchestrator hands them to a session, which has the `tv` skill.

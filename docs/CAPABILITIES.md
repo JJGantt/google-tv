@@ -17,7 +17,7 @@ to verified without doing it.
 | Read volume | `cmd media_session volume --stream 3 --get` (range 0–100) | verified: read 5 |
 | Set volume | `--set N` is **ignored** by TCL's audio (returns, level unchanged); `bin/tv` steps with `KEYCODE_VOLUME_UP/DOWN` and reads back after each press | verified: 5 → 4 with one key press. The key shows the volume bar briefly |
 | Power state | `dumpsys power` → `mWakefulness` | verified (read "Awake") |
-| Sleep / wake | `KEYCODE_SLEEP` / `KEYCODE_WAKEUP` | unverified. Whether the adb connection survives standby is the open question |
+| Sleep / wake | `KEYCODE_SLEEP` / `KEYCODE_WAKEUP` | unverified. Waking from standby is in POWER.md: network standby is on, and Cast, Wake-on-LAN and adb are untested |
 | Open a specific YouTube video | `am start -a VIEW -d https://www.youtube.com/watch?v=<id> com.google.android.youtube.tv` | verified twice, the second time through `bin/tv open`: playing, title read back from the media session |
 | Deep links into other apps | same pattern with each app's URL | unverified per app |
 | Launch an app | `monkey -p <pkg> -c LEANBACK_LAUNCHER 1` | unverified |

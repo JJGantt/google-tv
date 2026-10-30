@@ -15,6 +15,7 @@ TV is not rooted; neither is possible (locked bootloader) or needed.
 | [docs/TCL-DISPLAY-SERVICE.md](docs/TCL-DISPLAY-SERVICE.md) | the vendor binder service behind brightness and the rest of the picture menu |
 | [docs/IDEAS.md](docs/IDEAS.md) | planned work: session sidebar overlay, orchestrator TV tools, how to answer "who is on screen" |
 | [docs/VOICE.md](docs/VOICE.md) | how voice reaches the TV: tv_commands, the hub relay, the app's link |
+| [docs/POWER.md](docs/POWER.md) | turning the TV on remotely: standby modes, wake methods, the plan for voice |
 | [docs/TODO.md](docs/TODO.md) | every open item: blocked, visible tests still owed, not started, decided against |
 
 ## `bin/tv`
