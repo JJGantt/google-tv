@@ -11,13 +11,14 @@ nothing here talks to the TV directly; Supabase and the hub carry it:
 - **`tv_commands`** (data-layer 00135): one row per command, `op` + `args`, answered with `result`
   and `done_at`. Kept as the record.
 - **The tool** (`data-layer/src/bedroomTv.ts`) subscribes to its row's update before inserting it and
-  waits up to 15 s. Its description is the orchestrator's whole instruction set for the TV: the
+  waits up to 15 s (45 s for `power`, `open` and `launch`, which may wait for a wake). Its description is the orchestrator's whole instruction set for the TV: the
   orchestrator loads no skills, so anything it must know about the TV goes there.
 - **The hub** (status-hub `server.js` § THE BEDROOM TV) pushes each insert to every connected TV app
-  and, with none connected, answers the row at once with "the TV is not connected". A TV that connects
-  late is replayed only commands under 30 s old.
+  and, with none connected, answers the row at once with "the TV is off", except `open` and `launch`,
+  which it holds while the Pi wakes the TV, and `power`, which it leaves to the Pi (POWER.md). A TV
+  that connects late is replayed only commands under 60 s old.
 - **`TvLink`** (the companion app) holds the stream open, reconnecting with backoff from 1 s doubling
-  to a minute, and authenticates with the hub's device token (the one `bin/tv sidebar on` pushes).
+  to a minute (cut short when the screen comes on), and authenticates with the hub's device token (the one `bin/tv sidebar on` pushes).
   Started at boot by `BootReceiver`, and by `bin/tv link`.
 
 ## What it can do
