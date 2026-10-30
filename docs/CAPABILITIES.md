@@ -71,10 +71,12 @@ per machine and never in the repo: the Mac has one; the Pi needs a copy before i
 sidebar. Every adb entry point of the app requires `android.permission.DUMP`, which the adb shell
 holds and an ordinary app does not, so nothing else on the TV can push a token or draw through them.
 
+Voice control rides the app too (`TvLink`, docs/VOICE.md): commands reach the TV with no Pi in the
+path, so they work when the voice worker is on Fly.
+
 Not built yet:
 - **Accessibility service** (enabled once in settings, or from adb via
   `enabled_accessibility_services`) can read and act inside other apps' UIs.
-- **Listening to Supabase directly**, so commands reach the TV with no Pi in the path.
 - A **screensaver** (DreamService) or a full-screen hub view.
 
 ## Limits
