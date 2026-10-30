@@ -6,15 +6,25 @@ bigger items are in [IDEAS.md](IDEAS.md); what is already proven is in
 
 ## Blocked on Jared
 
-- A go-ahead to switch the TV off and on a few times for the wake tests (above).
+- **Which streaming services he pays for**, to set app_settings `streaming_services` (WATCHING.md §
+  The catalog). Until then the catalog marks nothing as his and `popular` / `added` need `services`.
+- **Signing in to Netflix and Disney+ on the TV's own apps** (or deciding those are watched on the
+  Apple TV box). Their links stop at a sign-in sheet today. Credentials are his to enter.
+- **The Apple TV box's pairing PIN**, read off the screen once, so pyatv can control it
+  (WATCHING.md § The Apple TV box).
+- **The Pi browser signed in to Netflix (and other services)**, if he wants their watch history read
+  the way YouTube's is. One-time, over VNC.
 
 ## Visible tests (need the TV on and someone awake in the bedroom)
 
 - An overlay over the Apple TV (HDMI 1) picture: `OverlayService` is built and permitted, never shown.
-- **Waking the TV remotely** (POWER.md): network standby is now on; run `tools/wake-probe.py` with
-  `cast`, `wol` and `adb` to find which wake works, then build the Pi-side wake so voice can put
-  something on with the TV off. Needs Jared's go-ahead, because each run turns the screen off and on.
-- `bin/tv input hdmi1`: HW15 = HDMI 1 is assumed, not checked.
+- **Wake after a long standby** (POWER.md): Wake-on-LAN is measured after minutes in standby, not
+  hours. The first real morning use will show it; if it fails, the adb fallback in `bin/tv power on`
+  and the voice answer will say so.
+- **Voice, spoken**: "put X on the TV" with the TV off, "turn the TV off", and a catalog pick, said
+  to the voice assistant rather than run by script.
+- `bin/tv input hdmi1`: switches to a TCL input (foreground `com.tcl.tv`); that it is HDMI 1 / the
+  Apple TV is not confirmed, because screenshots of an HDMI input come back empty.
 - A real reboot: does wireless debugging come back by itself, and does `BootReceiver` fire on this
   TCL build (it may hold boot broadcasts back from non-whitelisted apps)?
 - `bin/tv launch <app>` and deep links into apps other than YouTube.
@@ -29,8 +39,20 @@ bigger items are in [IDEAS.md](IDEAS.md); what is already proven is in
 - **Voice control, first spoken test** (VOICE.md): only `brightness` (read) and `now` were run end to
   end, by writing rows directly. Say a few commands to the voice assistant; check `volume` set goes
   through the app's AudioManager stepping the way `bin/tv volume` does through keys.
-- **Voice: power and inputs.** The app cannot do either. Waking is in POWER.md and comes first.
-  Turning off and inputs can ride on the same Pi-side path once it exists.
+- **Voice: inputs.** Power is done (POWER.md); switching inputs can ride the same Pi-side path
+  (`tvHome.ts` running `bin/tv input`).
+
+## Watching (WATCHING.md)
+
+- **Recommendations of his own**: a taste profile from YouTube history (what he finishes vs abandons,
+  `watched N%`), subscriptions and channels, used to rank the `home` feed, `subscription_feed` and
+  catalog picks instead of taking YouTube's order. Today a model does this ad hoc from the tools.
+- **The Apple TV box** under control with pyatv once paired: open titles there, read what is
+  playing, Up Next if it is reachable.
+- **Netflix / Prime watch history** through the Pi browser, the way YouTube's is read, once it is
+  signed in to each.
+- **Hulu, Max and other deep links** on the TV, untested.
+- **Search history and comments** on YouTube: not built; nothing has asked for them yet.
 - **Accessibility service** in the companion app, for acting inside other apps without adb.
 - **Screensaver / hub view** on this TV (DreamService or a full-screen page).
 - **The rest of the picture menu** through `tcl_tv_display`: picture mode, colour, HDR,

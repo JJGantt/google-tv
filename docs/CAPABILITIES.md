@@ -17,9 +17,10 @@ to verified without doing it.
 | Read volume | `cmd media_session volume --stream 3 --get` (range 0–100) | verified: read 5 |
 | Set volume | `--set N` is **ignored** by TCL's audio (returns, level unchanged); `bin/tv` steps with `KEYCODE_VOLUME_UP/DOWN` and reads back after each press | verified: 5 → 4 with one key press. The key shows the volume bar briefly |
 | Power state | `dumpsys power` → `mWakefulness` | verified (read "Awake") |
-| Sleep / wake | `KEYCODE_SLEEP` / `KEYCODE_WAKEUP` | unverified. Waking from standby is in POWER.md: network standby is on, and Cast, Wake-on-LAN and adb are untested |
+| Sleep / wake | `bin/tv power off` (`KEYCODE_SLEEP`) / `power on` (Wake-on-LAN, adb fallback) | verified from the Mac and the Pi, after minutes in standby; needs Network standby (POWER.md) |
+| Deep links into streaming apps | `bin/tv open '<intent:…>'`, from the `catalog` tool | verified: Prime Video and Apple TV land on the title; Netflix and Disney+ stop at sign-in (WATCHING.md) |
+| Screenshot of an HDMI input | `screencap` | fails: returns nothing on an HDMI input |
 | Open a specific YouTube video | `am start -a VIEW -d https://www.youtube.com/watch?v=<id> com.google.android.youtube.tv` | verified twice, the second time through `bin/tv open`: playing, title read back from the media session |
-| Deep links into other apps | same pattern with each app's URL | unverified per app |
 | Launch an app | `monkey -p <pkg> -c LEANBACK_LAUNCHER 1` | unverified |
 | Switch HDMI input | `content://android.media.tv/passthrough/com.tcl.tvinput%2F.TvPassThroughService%2FHW1<n>` | unverified. HW15–HW18 exist; HW15 = HDMI 1 is an assumption |
 | What is playing | `dumpsys media_session` | verified: package, PLAYING, title |

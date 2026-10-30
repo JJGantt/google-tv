@@ -22,7 +22,8 @@ nothing here talks to the TV directly; Supabase and the hub carry it:
 
 ## What it can do
 
-`brightness`, `contrast`, `night`, `volume`, `open` (a URL in an app — a specific YouTube video),
+`power` (done by the Pi, not the app: POWER.md), `brightness`, `contrast`, `night`, `volume`,
+`open` (a YouTube URL in the YouTube app, or a catalog `intent:` deep link: WATCHING.md),
 `launch`, `sidebar`, `overlay`, `now`. Verified end to end on 2026-10-30 for `brightness` (read) and
 `now` (app, title, position); the rest run the same code paths `bin/tv` proved, from inside the app.
 
@@ -30,16 +31,12 @@ nothing here talks to the TV directly; Supabase and the hub carry it:
 
     adb shell cmd notification allow_listener com.jaredgantt.tvcompanion/.Listener
 
-**Choosing a video** is the data MCP's `youtube` tool (data-layer `src/youtube.ts`): `search` gives
-real video ids, and `video` gives one video's full description and chapters. Both read the JSON that
-YouTube embeds in its pages. WebFetch cannot stand in for it: it strips scripts and truncates the page,
-so it sees neither a description nor search results. Transcripts are out of reach: the caption and
-transcript endpoints now require a token that only YouTube's own player mints.
+**Choosing what to put on** is the `youtube` and `catalog` tools: WATCHING.md.
 
 ## What it cannot do, and why
 
-An app cannot turn the TV off or on (`goToSleep` is a system permission). While the TV is off, the
-app is not running at all, so a command fails with `the TV is not connected`. Waking it from the
-network is POWER.md, switch HDMI inputs
+An app cannot turn the TV off or on (`goToSleep` is a system permission), so `power` is the Pi's
+(POWER.md). While the TV is off the app is not running: `open` and `launch` wait for the Pi to wake
+it, and anything else answers `the TV is off (its app is not connected)`. The app also cannot switch HDMI inputs
 (unverified, untried), press keys inside another app, or take a screenshot. Those stay with `bin/tv`
 over adb, so the orchestrator hands them to a session, which has the `tv` skill.
