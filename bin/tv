@@ -6,6 +6,7 @@ separately (see docs/SETUP.md). Every command prints what the TV reports
 back, not what was requested, so a silent failure shows up as a wrong value.
 """
 import re
+import socket
 import subprocess
 import sys
 import time
@@ -15,6 +16,9 @@ from pathlib import Path
 # every time wireless debugging is re-enabled, so both are discovered by this
 # name and cached; neither is ever written down.
 GUID = "adb-D00650B30E80300FC-jOM1G6"
+# Wake-on-LAN target: the wlan0 MAC (the TV has no wired connection). It only wakes the TV when TCL's
+# standby mode is Network standby; docs/POWER.md.
+MAC = "<tv-mac>"
 STATE = Path.home() / ".cache" / "google-tv-addr"
 
 # com.tcl.tv.display.ITvDisplayManagerService transaction codes (decompiled
@@ -159,17 +163,38 @@ def volume(value=None):
     print(get_volume())
 
 
+def is_on():
+    m = re.search(r"mWakefulness=(\w+)", sh("dumpsys", "power"))
+    return bool(m and m.group(1) == "Awake")
+
+
+def wake():
+    """Wake-on-LAN magic packet. The fastest wake (under a second) and needs no adb; harmless when on."""
+    pkt = bytes.fromhex("ff" * 6 + MAC.replace(":", "") * 16)
+    with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
+        s.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
+        for port in (9, 7):
+            s.sendto(pkt, ("255.255.255.255", port))
+
+
 def power(state=None):
+    """on: Wake-on-LAN, then adb's KEYCODE_WAKEUP if the TV is still off a few seconds later.
+    off: KEYCODE_SLEEP. Prints the state the TV reports afterwards."""
     if state == "on":
-        sh("input", "keyevent", "KEYCODE_WAKEUP")
+        wake()
+        for _ in range(5):
+            time.sleep(1)
+            if is_on():
+                break
+        else:
+            sh("input", "keyevent", "KEYCODE_WAKEUP")
+            time.sleep(1)
     elif state == "off":
         sh("input", "keyevent", "KEYCODE_SLEEP")
+        time.sleep(1)
     elif state is not None:
         raise SystemExit("power on|off")
-    if state:
-        time.sleep(1)
-    m = re.search(r"mWakefulness=(\w+)", sh("dumpsys", "power"))
-    print("on" if m and m.group(1) == "Awake" else "off")
+    print("on" if is_on() else "off")
 
 
 def now():
@@ -269,7 +294,7 @@ def overlay(text_, seconds="5"):
 
 COMMANDS = {
     "brightness": brightness, "contrast": contrast, "dynamic-contrast": dynamic_contrast, "night": night,
-    "volume": volume, "power": power, "now": now,
+    "volume": volume, "power": power, "wake": wake, "now": now,
     "open": open_url, "launch": launch, "input": input_, "key": key, "text": text,
     "screen": screen, "screenshot": screenshot, "sidebar": sidebar, "overlay": overlay, "link": link,
     "shell": lambda *c: print(sh(*c), end=""),

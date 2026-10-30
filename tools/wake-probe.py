@@ -36,13 +36,15 @@ def wol():
 def cast():
     import pychromecast
     found, browser = pychromecast.get_listed_chromecasts(friendly_names=[CAST_NAME], timeout=15)
-    browser.stop_discovery()
-    if not found:
-        print("cast: not discoverable")
-        return
-    cc = found[0]
-    cc.wait(timeout=15)
-    cc.start_app("233637DE")  # YouTube's Cast app id
+    try:
+        if not found:
+            print("cast: not discoverable")
+            return
+        cc = found[0]
+        cc.wait(timeout=15)  # needs discovery still running to resolve the host
+        cc.start_app("233637DE")  # YouTube's Cast app id
+    finally:
+        browser.stop_discovery()
 
 
 def main():
