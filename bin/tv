@@ -213,7 +213,8 @@ def now():
 
 
 def open_url(url, app=None):
-    cmd = ["am", "start", "-W", "-a", "android.intent.action.VIEW", "-d", url]
+    # An intent: URI (the catalog's Android TV deep links) is a whole intent; am takes it as is.
+    cmd = ["am", "start", "-W", f"'{url}'"] if url.startswith("intent:") else ["am", "start", "-W", "-a", "android.intent.action.VIEW", "-d", url]
     if app:
         cmd.append(APPS.get(app, app))
     print(sh(*cmd).strip().splitlines()[-1])

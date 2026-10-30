@@ -6,6 +6,7 @@ import android.app.NotificationManager;
 import android.app.Service;
 import android.content.ComponentName;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.media.AudioManager;
 import android.media.MediaMetadata;
@@ -31,11 +32,22 @@ import java.util.List;
  *  stream is the only way commands arrive, and a dropped stream reconnects with backoff (1s doubling
  *  to a minute), so a hub that is down costs one attempt a minute, not a busy loop.
  *
+ *  In standby the stream drops and the backoff climbs. The screen coming on cuts the wait short, so a
+ *  command held by the hub while the TV was woken (docs/POWER.md) arrives in seconds, not a minute.
+ *
  *  Started at boot (BootReceiver) and by `bin/tv link`; START_STICKY so the system restarts it. */
 public class TvLink extends Service {
     static final String TAG = BootReceiver.TAG;
     private Thread loop;
     private volatile boolean running;
+    private volatile long backoff = 1000;
+    // A top-level class: this d8 (build-tools 34) fails on any nested class javac 21 emits.
+    private final ScreenOn screenOn = new ScreenOn(this::retryNow);
+
+    private void retryNow() {
+        backoff = 1000;
+        if (loop != null) loop.interrupt();
+    }
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
@@ -44,6 +56,7 @@ public class TvLink extends Service {
         startForeground(3, new Notification.Builder(this, "link").setSmallIcon(android.R.drawable.ic_dialog_info).build());
         if (loop == null) {
             running = true;
+            registerReceiver(screenOn, new IntentFilter(Intent.ACTION_SCREEN_ON));
             loop = new Thread(this::listen, "tv-link");
             loop.start();
         }
@@ -51,7 +64,6 @@ public class TvLink extends Service {
     }
 
     private void listen() {
-        long backoff = 1000;
         while (running) {
             String token = Config.prefs(this).getString("hub_token", null);
             if (token == null) { Log.e(TAG, "link: no hub token"); sleep(60_000); continue; }
@@ -116,7 +128,11 @@ public class TvLink extends Service {
                         .put("dynamic_contrast", Display.dynamicContrast());
             case "volume": return r.put("volume", volume(a));
             case "open": {
-                Intent i = new Intent(Intent.ACTION_VIEW, Uri.parse(a.getString("url"))).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                // An `intent:` URI is a complete Android TV deep link (the catalog's, from JustWatch),
+                // carrying its own package and flags; anything else is a URL to view.
+                String url = a.getString("url");
+                Intent i = (url.startsWith("intent:") ? Intent.parseUri(url, Intent.URI_INTENT_SCHEME)
+                        : new Intent(Intent.ACTION_VIEW, Uri.parse(url))).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 if (a.has("package")) i.setPackage(a.getString("package"));
                 startActivity(i);
                 return r;
@@ -206,6 +222,7 @@ public class TvLink extends Service {
     @Override
     public void onDestroy() {
         running = false;
+        if (loop != null) unregisterReceiver(screenOn);
     }
 
     @Override
