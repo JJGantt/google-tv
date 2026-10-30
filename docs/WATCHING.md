@@ -81,3 +81,7 @@ His streaming subscriptions may well live there rather than on the TV's apps. `p
 **one-time Companion pairing, which shows a 4-digit PIN on the Apple TV screen**. That PIN cannot be
 read remotely: the Google TV's `screencap` returns nothing on an HDMI input (protected content), so
 Jared has to read it out once. TODO.md.
+
+An earlier pyatv controller exists on the Pi (`~/tv-dashboard/atv_control.py`, March 2026, with the
+`tv-server` unit inactive). Its credentials in `~/.pyatv.conf` are for the **Living Room** Apple TV,
+not the bedroom one.
