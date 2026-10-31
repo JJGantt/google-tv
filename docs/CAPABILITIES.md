@@ -27,7 +27,7 @@ to verified without doing it.
 | Foreground app | `dumpsys window` → `mCurrentFocus` | verified |
 | Remote buttons | `input keyevent` | verified (D-pad, Enter, Back, Settings all drove the menus) |
 | Read the screen as text | `uiautomator dump` | verified for Settings and the home screen. The YouTube player exposes no text |
-| Screenshot | `screencap -p` | verified for Android UI. DRM video (Netflix etc.) is expected to capture black |
+| Screenshot | `screencap -p` | verified for Android UI. DRM video captures black while it plays on screen (verified with Prime Video): a black picture behind the UI is not a dark TV |
 | Pair another machine with no one at the TV | drive Developer options → Wireless debugging → Pair from an already-paired machine and read the code off the screen | verified: that is how the Pi was paired |
 
 Installed apps with a launcher entry: YouTube, YouTube Music, YouTube TV, Netflix, Prime Video,
