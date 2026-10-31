@@ -15,6 +15,7 @@ import android.media.session.MediaSessionManager;
 import android.media.session.PlaybackState;
 import android.net.Uri;
 import android.os.IBinder;
+import android.os.PowerManager;
 import android.util.Log;
 
 import org.json.JSONObject;
@@ -134,12 +135,14 @@ public class TvLink extends Service {
                 Intent i = (url.startsWith("intent:") ? Intent.parseUri(url, Intent.URI_INTENT_SCHEME)
                         : new Intent(Intent.ACTION_VIEW, Uri.parse(url))).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 if (a.has("package")) i.setPackage(a.getString("package"));
+                holdAwake();
                 startActivity(i);
                 return r;
             }
             case "launch": {
                 Intent i = getPackageManager().getLeanbackLaunchIntentForPackage(a.getString("package"));
                 if (i == null) return r.put("ok", false).put("error", "not installed: " + a.getString("package"));
+                holdAwake();
                 startActivity(i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
                 return r;
             }
@@ -156,6 +159,18 @@ public class TvLink extends Service {
             case "now": return now(r);
             default: return r.put("ok", false).put("error", "unknown op " + op);
         }
+    }
+
+    /** Starting an app is not user activity. On an HDMI input the TV holds the screen on itself, so the
+     *  screensaver's idle timer can have run out hours ago, and the instant the app replaces the input
+     *  the screensaver starts: two seconds after a video's link arrives, which pauses YouTube before it
+     *  plays and leaves its home screen under the screensaver. This lock bridges until the app's player
+     *  holds the screen itself, and ON_AFTER_RELEASE restarts the idle timer when it lets go. */
+    private void holdAwake() {
+        PowerManager.WakeLock wl = getSystemService(PowerManager.class).newWakeLock(
+                PowerManager.SCREEN_BRIGHT_WAKE_LOCK | PowerManager.ON_AFTER_RELEASE, "tvcompanion:open");
+        wl.setReferenceCounted(false);
+        wl.acquire(30_000);
     }
 
     /** TCL's audio ignores a direct set (`cmd media_session volume --set`), so a target is reached a

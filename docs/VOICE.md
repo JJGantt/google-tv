@@ -32,6 +32,12 @@ nothing here talks to the TV directly; Supabase and the hub carry it:
 
     adb shell cmd notification allow_listener com.jaredgantt.tvcompanion/.Listener
 
+`open` and `launch` hold a screen wake lock for 30 s around starting the app (`holdAwake`). Starting
+an app is not user activity, and on an HDMI input the TV keeps the screen on itself, so the 10-minute
+screensaver timer can be long expired: without the lock the screensaver starts about two seconds after
+the app does, pausing YouTube before the video plays, and pressing a key afterwards uncovers YouTube's
+home screen. The lock is released with `ON_AFTER_RELEASE`, which restarts the idle timer.
+
 **Choosing what to put on** is the `youtube` and `catalog` tools: WATCHING.md.
 
 ## What it cannot do, and why
