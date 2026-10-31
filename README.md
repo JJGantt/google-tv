@@ -37,7 +37,7 @@ One script, stdlib Python, runs the same on the Mac and the Pi (both are paired)
     bin/tv text "<string>"        # types into the focused field
     bin/tv screen                 # on-screen text with tap coordinates; * marks the focused element
     bin/tv screenshot [path]
-    bin/tv sidebar on [0-1]|off   # the focused session, see-through, down the right (width as a fraction)
+    bin/tv sidebar on [0-1]|off   # the voice conversation and the focused session, see-through, down the right (width as a fraction)
     bin/tv overlay "<text>" [s]   # one line in the top-right corner for s seconds
     bin/tv shell <cmd...>
 

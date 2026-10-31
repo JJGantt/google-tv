@@ -62,8 +62,9 @@ Probes run invisibly: `am broadcast -n com.jaredgantt.tvcompanion/.ProbeReceiver
 ### Sidebar (`bin/tv sidebar on|off`)
 
 The hub's `/tv-sidebar` page (status-hub docs/HUB-INTERNALS.md § The TV sidebar) in a WebView overlay
-down the right 30% of the screen (`--ef width` / `bin/tv sidebar on 0.25` to change it): the focused
-session, live, see-through, over whatever is playing. Verified 2026-10-30 over YouTube: it rendered
+down the right 30% of the screen (`--ef width` / `bin/tv sidebar on 0.25` to change it): the voice
+orchestrator's current conversation above the focused session, live, see-through, over whatever is
+playing. The orchestrator panel disappears when that conversation's context ends (idle gap or reset). Verified 2026-10-30 over YouTube: it rendered
 the session as it updated, and the remote still drove the video. Over HDMI unverified.
 
 It signs in with the hub's device token, which `bin/tv sidebar on` pushes into the app every time
