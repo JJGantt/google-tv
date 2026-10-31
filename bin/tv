@@ -233,7 +233,13 @@ def input_(name):
     open_url(uri)
 
 
+# `select` means the remote's OK button, DPAD_CENTER. KEYCODE_SELECT is a different key that Prime
+# Video ignores, so the literal mapping leaves its profile picker sitting there.
+KEY_ALIASES = {"select": "DPAD_CENTER", "ok": "DPAD_CENTER"}
+
+
 def key(*names):
+    names = [KEY_ALIASES.get(n.lower(), n) for n in names]
     sh("input", "keyevent", *[n if n.isdigit() or n.startswith("KEYCODE_") else f"KEYCODE_{n.upper()}" for n in names])
 
 

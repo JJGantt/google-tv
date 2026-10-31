@@ -63,11 +63,19 @@ marked "(his)". **Not set yet**: TODO.md § Blocked on Jared.
 | Service | Deep link | Signed in on the TV | Result |
 |---|---|---|---|
 | YouTube | watch URL | yes | plays at once |
-| Prime Video | catalog `intent://watch.amazon.com/…` | yes | the title page, "Play S1 E1" |
+| Prime Video | catalog `intent://watch.amazon.com/…` | yes | the title page, "Play S1 E1"; when Prime was not already running, its "Who's watching?" profile picker first (below) |
 | Apple TV | catalog `intent://tv.apple.com/…` | **no Apple TV+ on it** (signed in or not, unchecked) | the episode page, offering "Accept Free Trial" |
 | Netflix | catalog `intent://www.netflix.com/…` | **no** | Google's "Choose an account to continue to Netflix" sign-in sheet |
 | Disney+ | catalog link | **no** | the same sign-in sheet |
 | Hulu, Max, others | | not tried | |
+
+**Prime's profile picker.** The account has two profiles ("jared", focused first, and "j"), so a
+Prime deep link that cold-starts the app stops on "Who's watching?" and `now` reports nothing playing.
+It does not time out on its own (seen 2026-10-31: it sat there until pressed). `key select` (OK,
+DPAD_CENTER) picks "jared" and Prime carries on into the link; with the link's `time=0` removed, a
+movie resumes where it was left (Heat, 2026-10-31, resumed at 8:40). Nothing on the `open` path presses
+it yet: the picker has no accessibility tree (`bin/tv screen` is empty in Prime), so detecting it means
+a screenshot or inferring it from "Prime foreground, nothing playing" a few seconds after the open.
 
 A sign-in sheet is backed out of with `back`. Signing in is Jared's to do: credentials are never
 typed or chosen by Claude.
