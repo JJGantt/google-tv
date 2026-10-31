@@ -69,8 +69,10 @@ marked "(his)". **Not set yet**: TODO.md § Blocked on Jared.
 | Disney+ | catalog link | **no** | the same sign-in sheet |
 | Hulu, Max, others | | not tried | |
 
-**Prime's profile picker.** The account has two profiles ("jared", focused first, and "j"), so a
-Prime deep link that cold-starts the app stops on "Who's watching?" and `now` reports nothing playing.
+**Prime's profile picker.** With two profiles on the account, a Prime deep link that cold-starts the
+app stops on "Who's watching?" and `now` reports nothing playing. The second profile ("j") was removed
+2026-10-31 (amazon.com/gp/video/profiles → Edit profile, from the Pi browser), leaving only "jared";
+whether the TV app still shows the picker with one profile is untested. The website does still show it.
 It does not time out on its own (seen 2026-10-31: it sat there until pressed). `key select` (OK,
 DPAD_CENTER) picks "jared" and Prime carries on into the link; with the link's `time=0` removed, a
 movie resumes where it was left (Heat, 2026-10-31, resumed at 8:40). Nothing on the `open` path presses
