@@ -25,7 +25,7 @@ nothing here talks to the TV directly; Supabase and the hub carry it:
 
 `power` (done by the Pi, not the app: POWER.md), `brightness`, `contrast`, `night`, `volume`,
 `open` (a YouTube URL in the YouTube app, or a catalog `intent:` deep link: WATCHING.md),
-`launch`, `sidebar`, `overlay`, `now`. Verified end to end on 2026-10-30 for `brightness` (read) and
+`launch`, `sidebar`, `overlay`, `now`, `media`, `input`, `key`. Verified end to end on 2026-10-30 for `brightness` (read) and
 `now` (app, title, position); the rest run the same code paths `bin/tv` proved, from inside the app.
 
 `now` reads media sessions, which Android allows to an enabled notification listener:
@@ -40,10 +40,21 @@ home screen. The lock is released with `ON_AFTER_RELEASE`, which restarts the id
 
 **Choosing what to put on** is the `youtube` and `catalog` tools: WATCHING.md.
 
+`media` drives whatever is playing through its media session, the same grant `now` uses: `play`,
+`pause`, `toggle`, `stop`, `next`, `previous`, and `forward` / `back` / `seek` by `seconds`. Skips are a
+`seekTo` from the live position (the session's last reported position plus the time elapsed since),
+because `fastForward` and `rewind` mean a different jump in every app. It answers with `now`. With
+nothing playing or paused it answers `nothing is playing`.
+
+`input` (`hdmi` 1-4) opens TCL's passthrough input the way `bin/tv input` does. The PlayStation 5 is
+HDMI 2 (CEC reports it on port 2). It wakes the TV first, like `open`.
+
 ## What it cannot do, and why
 
 An app cannot turn the TV off or on (`goToSleep` is a system permission), so `power` is the Pi's
-(POWER.md). While the TV is off the app is not running: `open` and `launch` wait for the Pi to wake
-it, and anything else answers `the TV is off (its app is not connected)`. The app also cannot switch HDMI inputs
-(unverified, untried), press keys inside another app, or take a screenshot. Those stay with `bin/tv`
-over adb, so the orchestrator hands them to a session, which has the `tv` skill.
+(POWER.md). An app cannot inject key presses into another app either, so `key` (back, home, the
+arrows, select) is the Pi's too: data-layer `tvHome.ts` runs `bin/tv key` over adb and answers the
+row, and the hub leaves `power` and `key` rows alone. While the TV is off the app is not running:
+`open`, `launch` and `input` wait for the Pi to wake it, `key` answers `the TV is off`, and anything
+else answers `the TV is off (its app is not connected)`. Screenshots stay with `bin/tv` over adb, so
+the orchestrator hands them to a session, which has the `tv` skill.
