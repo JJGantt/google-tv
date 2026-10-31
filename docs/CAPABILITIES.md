@@ -21,7 +21,7 @@ to verified without doing it.
 | Deep links into streaming apps | `bin/tv open '<intent:…>'`, from the `catalog` tool | verified: Prime Video and Apple TV land on the title; Netflix and Disney+ stop at sign-in (WATCHING.md) |
 | Screenshot of an HDMI input | `screencap` | fails: returns nothing on an HDMI input |
 | Open a specific YouTube video | `am start -a VIEW -d https://www.youtube.com/watch?v=<id> com.google.android.youtube.tv` | verified twice, the second time through `bin/tv open`: playing, title read back from the media session |
-| Launch an app | `monkey -p <pkg> -c LEANBACK_LAUNCHER 1` | unverified |
+| Launch an app | companion app `launch` (`getLeanbackLaunchIntentForPackage`), or `monkey -p <pkg> -c LEANBACK_LAUNCHER 1` over adb | verified 2026-10-31: Prime Video through `bedroom_tv launch`. Needs the manifest's `<queries>` block — without it package visibility hides every store app and `launch` answers "not installed" |
 | Switch HDMI input | `content://android.media.tv/passthrough/com.tcl.tvinput%2F.TvPassThroughService%2FHW1<n>` | unverified. HW15–HW18 exist; HW15 = HDMI 1 is an assumption |
 | What is playing | `dumpsys media_session` | verified: package, PLAYING, title |
 | Foreground app | `dumpsys window` → `mCurrentFocus` | verified |
