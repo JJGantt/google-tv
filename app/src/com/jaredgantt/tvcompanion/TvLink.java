@@ -157,6 +157,17 @@ public class TvLink extends Service {
                         .putExtra("text", a.getString("text")).putExtra("seconds", a.optInt("seconds", 5)));
                 return r;
             case "now": return now(r);
+            case "media": return media(a.getString("action"), a);
+            case "input": {
+                // HDMI n is TCL's passthrough input HW(14+n), opened the way the TV's own input picker
+                // opens it (bin/tv input).
+                int n = a.getInt("hdmi");
+                if (n < 1 || n > 4) return r.put("ok", false).put("error", "hdmi is 1-4");
+                startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("content://android.media.tv/passthrough/"
+                        + Uri.encode("com.tcl.tvinput/.TvPassThroughService/HW" + (14 + n))))
+                        .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
+                return r.put("hdmi", n);
+            }
             default: return r.put("ok", false).put("error", "unknown op " + op);
         }
     }
@@ -190,20 +201,67 @@ public class TvLink extends Service {
         return cur;
     }
 
-    /** What is playing, from the active media sessions; needs the notification-listener grant. */
-    private JSONObject now(JSONObject r) throws Exception {
-        MediaSessionManager m = getSystemService(MediaSessionManager.class);
-        List<MediaController> list = m.getActiveSessions(new ComponentName(this, Listener.class));
+    /** The session `now` reports and `media` drives: the first one playing or paused. */
+    private MediaController current() {
+        List<MediaController> list = getSystemService(MediaSessionManager.class)
+                .getActiveSessions(new ComponentName(this, Listener.class));
         for (MediaController mc : list) {
             PlaybackState st = mc.getPlaybackState();
-            if (st == null || (st.getState() != PlaybackState.STATE_PLAYING && st.getState() != PlaybackState.STATE_PAUSED)) continue;
+            if (st != null && (st.getState() == PlaybackState.STATE_PLAYING || st.getState() == PlaybackState.STATE_PAUSED)) return mc;
+        }
+        return null;
+    }
+
+    /** Where playback is now, not at the session's last report: a playing session only updates its
+     *  position on a state change, so the elapsed time since then is added. */
+    private static long positionMs(PlaybackState st) {
+        long p = st.getPosition();
+        if (st.getState() == PlaybackState.STATE_PLAYING)
+            p += (long) ((android.os.SystemClock.elapsedRealtime() - st.getLastPositionUpdateTime()) * st.getPlaybackSpeed());
+        return Math.max(0, p);
+    }
+
+    /** Transport controls on whatever is playing, through its media session (the same grant `now`
+     *  uses). Skips are a seek from the live position, which every app that reports a position takes,
+     *  where fastForward/rewind mean something different in each app. Answers with `now` afterwards. */
+    private JSONObject media(String action, JSONObject a) throws Exception {
+        MediaController mc = current();
+        JSONObject r = new JSONObject().put("ok", true);
+        if (mc == null) return r.put("ok", false).put("error", "nothing is playing");
+        MediaController.TransportControls t = mc.getTransportControls();
+        PlaybackState st = mc.getPlaybackState();
+        long pos = positionMs(st);
+        switch (action) {
+            case "play": t.play(); break;
+            case "pause": t.pause(); break;
+            case "toggle": if (st.getState() == PlaybackState.STATE_PLAYING) t.pause(); else t.play(); break;
+            case "stop": t.stop(); break;
+            case "next": t.skipToNext(); break;
+            case "previous": t.skipToPrevious(); break;
+            case "forward": t.seekTo(pos + (long) (a.optDouble("seconds", 30) * 1000)); break;
+            case "back": t.seekTo(Math.max(0, pos - (long) (a.optDouble("seconds", 10) * 1000))); break;
+            case "seek": t.seekTo((long) (a.getDouble("seconds") * 1000)); break;
+            default: return r.put("ok", false).put("error", "unknown action " + action);
+        }
+        // The app applies it asynchronously; read back once it has had a moment to.
+        Thread.sleep(800);
+        return now(r);
+    }
+
+    /** What is playing, from the active media sessions; needs the notification-listener grant. */
+    private JSONObject now(JSONObject r) throws Exception {
+        MediaController mc = current();
+        if (mc != null) {
+            PlaybackState st = mc.getPlaybackState();
             MediaMetadata md = mc.getMetadata();
             r.put("package", mc.getPackageName());
             r.put("state", st.getState() == PlaybackState.STATE_PLAYING ? "playing" : "paused");
-            r.put("position_s", st.getPosition() / 1000);
+            r.put("position_s", positionMs(st) / 1000);
             if (md != null) {
                 r.put("title", md.getString(MediaMetadata.METADATA_KEY_TITLE));
                 r.put("artist", md.getString(MediaMetadata.METADATA_KEY_ARTIST));
+                long len = md.getLong(MediaMetadata.METADATA_KEY_DURATION);
+                if (len > 0) r.put("duration_s", len / 1000);
             }
             return r;
         }
