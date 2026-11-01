@@ -7,14 +7,12 @@ then tries one wake method and reports whether the TV came back on and how long 
 It lights the screen: run it only when someone in the bedroom has said it is fine.
 """
 import argparse
-import socket
 import subprocess
 import sys
 import time
 from pathlib import Path
 
 TV = Path(__file__).resolve().parent.parent / "bin" / "tv"
-MAC = "<tv-mac>"  # wlan0; the TV has no wired connection
 CAST_NAME = "Bedroom TV"
 
 
@@ -26,11 +24,10 @@ def tv(*args, timeout=10):
 
 
 def wol():
-    pkt = bytes.fromhex("ff" * 6 + MAC.replace(":", "") * 16)
-    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    s.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
-    for port in (9, 7):
-        s.sendto(pkt, ("255.255.255.255", port))
+    """Wake-on-LAN, sent by bin/tv, which reads the TV's MAC from its per-machine config."""
+    p = subprocess.run([str(TV), "wake"], capture_output=True, text=True, timeout=10)
+    if p.returncode:
+        raise RuntimeError(p.stderr.strip())
 
 
 def cast():

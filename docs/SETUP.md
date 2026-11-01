@@ -27,6 +27,9 @@ Coordinate taps from `uiautomator` bounds do not land reliably on this screen; k
 - **Mac:** `brew install --cask android-platform-tools`. Its adb resolves mDNS itself.
 - **Pi:** `apt install adb avahi-utils`. Debian's adb is built without mDNS, so `bin/tv` finds the
   TV with `avahi-browse` instead. The adb server is ~5 MB resident while idle.
+- **Both:** `~/.config/google-tv/` holds what is specific to this house and stays out of the repo:
+  `mac` (the TV's wlan0 MAC, one line, for `bin/tv wake` and `power on`; from the router or
+  `adb shell cat /sys/class/net/wlan0/address`) and `hub-token` (CAPABILITIES.md § Sidebar).
 
 ## Discovery
 

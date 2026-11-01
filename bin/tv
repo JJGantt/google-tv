@@ -16,9 +16,11 @@ from pathlib import Path
 # every time wireless debugging is re-enabled, so both are discovered by this
 # name and cached; neither is ever written down.
 GUID = "adb-D00650B30E80300FC-jOM1G6"
-# Wake-on-LAN target: the wlan0 MAC (the TV has no wired connection). It only wakes the TV when TCL's
-# standby mode is Network standby; docs/POWER.md.
-MAC = "<tv-mac>"
+# Per-machine settings kept outside the repo (docs/SETUP.md).
+CONFIG = Path.home() / ".config" / "google-tv"
+# Wake-on-LAN target: the wlan0 MAC (the TV has no wired connection), one line. It only wakes the TV
+# when TCL's standby mode is Network standby; docs/POWER.md.
+MAC_FILE = CONFIG / "mac"
 STATE = Path.home() / ".cache" / "google-tv-addr"
 
 # com.tcl.tv.display.ITvDisplayManagerService transaction codes (decompiled
@@ -170,7 +172,10 @@ def is_on():
 
 def wake():
     """Wake-on-LAN magic packet. The fastest wake (under a second) and needs no adb; harmless when on."""
-    pkt = bytes.fromhex("ff" * 6 + MAC.replace(":", "") * 16)
+    if not MAC_FILE.exists():
+        raise SystemExit(f"no TV MAC at {MAC_FILE}")
+    mac = MAC_FILE.read_text().strip()
+    pkt = bytes.fromhex("ff" * 6 + mac.replace(":", "") * 16)
     with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
         s.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
         for port in (9, 7):
@@ -269,7 +274,7 @@ def screenshot(path="tv.png"):
 
 APP = "com.jaredgantt.tvcompanion"
 # The hub's device token, kept per machine outside the repo and pushed into the app on demand.
-HUB_TOKEN_FILE = Path.home() / ".config" / "google-tv" / "hub-token"
+HUB_TOKEN_FILE = CONFIG / "hub-token"
 
 
 def sidebar(state="on", width=None):

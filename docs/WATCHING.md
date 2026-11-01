@@ -26,21 +26,10 @@ YouTube's own player mints. Chapters and the description are the content signal 
 
 ## YouTube, his account
 
-`data-layer/src/youtubeAccount.ts`. YouTube's public Data API has had no watch history or
-recommendations since 2016, so this uses the site's own internal API (`youtubei/v1/browse`, browse
-ids `FEhistory`, `FEwhat_to_watch`, `FEchannels`, `FEsubscriptions`, `VLWL`, `VLLL`,
-`FEplaylist_aggregation`, `VL<playlist>`). It is signed in with the cookies of the Pi's automation
-browser (pi-browser repo; logged in as his Google account). Cookies are read live over its
-DevTools port (`Storage.getCookies`) for each request, never stored, and sent only to youtube.com.
-Requests carry the `SAPISIDHASH` header the site computes. The browser keeps the cookies fresh.
-
-The bedroom TV's YouTube is signed in to the same account, so its plays are in `history`, with how
-much of each was watched (`watched N%`). Measured 2026-10-30: 400 history rows back to mid-October
-took 4.2s; each page is about 200 videos, followed by continuation tokens up to 20 pages.
-
-Any machine asks through `home_requests` (data-layer README § The Pi's home-network jobs). If the Pi
-browser is signed out of Google, every account op fails with "not signed in": sign it back in over
-VNC (pi-browser README).
+`data-layer/src/youtubeAccount.ts`, on the Pi only, reached through `home_requests`; how it signs in is
+described there. The bedroom TV's YouTube is on the same account, so its plays are in `history` with how
+much of each was watched. "not signed in" from every account op means the Pi browser needs signing back
+in (pi-browser README).
 
 ## The catalog
 
@@ -84,7 +73,7 @@ typed or chosen by Claude.
 
 ## The Apple TV box on HDMI 1
 
-The bedroom also has an Apple TV ("Bedroom tv", <apple-tv-ip> on 2026-10-30, `_companion-link._tcp`).
+The bedroom also has an Apple TV ("Bedroom tv", `_companion-link._tcp`).
 His streaming subscriptions may well live there rather than on the TV's apps. `pyatv` sees it
 (`uvx --from pyatv atvscript scan`) with the Companion, AirPlay and RAOP protocols. Controlling it
 (launching an app, opening a `tv.apple.com` or Netflix URL, play/pause, what is playing) needs

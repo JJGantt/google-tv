@@ -1,6 +1,6 @@
 # Ideas and next work
 
-Not built yet. Each entry says what is known about whether it can be done cleanly.
+Each entry says what is known about whether it can be done cleanly; the ones since built say so.
 
 ## Session sidebar over whatever is playing
 

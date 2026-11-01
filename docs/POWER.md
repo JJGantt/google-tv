@@ -51,7 +51,7 @@ Each test turned the TV off over adb, waited 60s or more in standby, then tried 
 
 | Method | Woke it | Time to on | Notes |
 |---|---|---|---|
-| **Wake-on-LAN** to wlan0 `<tv-mac>` | yes, also from the Pi | 0.6s | no pairing, no session; **the one used** |
+| **Wake-on-LAN** to the wlan0 MAC | yes, also from the Pi | 0.6s | no pairing, no session; **the one used** |
 | adb `KEYCODE_WAKEUP` | yes | 2.0s | needs the adb pairing alive; adbd still answers in network standby. The fallback |
 | Cast (start YouTube's receiver) | yes | 6.8s | slowest, and launches YouTube as a side effect |
 | Android TV Remote v2 | not tried | | needs a pairing code on screen; nothing it adds |
