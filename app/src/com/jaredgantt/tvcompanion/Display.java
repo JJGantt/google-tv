@@ -4,12 +4,17 @@ import android.os.IBinder;
 import android.os.Parcel;
 
 /** TCL's picture settings through its display service (docs/TCL-DISPLAY-SERVICE.md). Callable from an
- *  ordinary app: verified on this TV. Codes shift if a firmware update adds methods; re-derive then. */
+ *  ordinary app: verified on this TV. The codes are the AIDL's method order, so they hold only for the
+ *  jar with JAR_SHA256 (the same pin bin/tv carries); any other refuses rather than change some other
+ *  setting. */
 final class Display {
     private static final int SET_CONTRAST = 31, GET_CONTRAST = 32;
     private static final int SET_DYNAMIC_CONTRAST = 47, GET_DYNAMIC_CONTRAST = 48;
     private static final int SET_BACKLIGHT = 100, GET_BACKLIGHT = 101;
     private static final int WINDOW = 0, CURRENT_MODE = 0, EXEC_SAVE = 2;
+    private static final String JAR = "/system_ext/framework/com.tcl.tv.display.jar";
+    private static final String JAR_SHA256 = "c14f5ea2d1374ab5a6abeae0c6bbfa15a6a0129a12aad7908332c62fc44a4600";
+    private static volatile boolean jarChecked;
 
     static int backlight() throws Exception { return call(GET_BACKLIGHT); }
     static int contrast() throws Exception { return call(GET_CONTRAST, WINDOW); }
@@ -30,6 +35,7 @@ final class Display {
 
     /** One ITvDisplayManagerService transaction with int arguments; returns the int result. */
     static int call(int code, int... args) throws Exception {
+        checkJar();
         IBinder b = (IBinder) Class.forName("android.os.ServiceManager")
                 .getMethod("getService", String.class).invoke(null, "tcl_tv_display");
         Parcel data = Parcel.obtain(), reply = Parcel.obtain();
@@ -43,6 +49,20 @@ final class Display {
             data.recycle();
             reply.recycle();
         }
+    }
+
+    private static void checkJar() throws Exception {
+        if (jarChecked) return;
+        java.security.MessageDigest md = java.security.MessageDigest.getInstance("SHA-256");
+        try (java.io.InputStream in = new java.io.FileInputStream(JAR)) {
+            byte[] buf = new byte[65536];
+            for (int n; (n = in.read(buf)) > 0; ) md.update(buf, 0, n);
+        }
+        StringBuilder hex = new StringBuilder();
+        for (byte x : md.digest()) hex.append(String.format("%02x", x));
+        if (!hex.toString().equals(JAR_SHA256))
+            throw new Exception("display service changed (firmware update?): transaction codes need re-deriving");
+        jarChecked = true;
     }
 
     private Display() {}

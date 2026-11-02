@@ -37,7 +37,8 @@ From `com.tcl.tv.pq.EnApplyType` and `EnTclActType`:
 ## Transaction codes
 
 The codes are the order of methods in the AIDL and will shift if a firmware update adds methods.
-`bin/tv` holds the SHA-256 of the jar they were derived from (`DISPLAY_JAR_SHA256`) and refuses every
+`bin/tv` (`DISPLAY_JAR_SHA256`) and the companion app (`Display.JAR_SHA256`) hold the SHA-256 of the
+jar the codes were derived from and refuse every
 picture call when the TV's jar differs, so an update stops brightness and contrast loudly instead of
 changing some other setting. Re-derive the codes, then update the hash:
 
