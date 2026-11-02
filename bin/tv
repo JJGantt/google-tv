@@ -21,6 +21,7 @@ CONFIG = Path.home() / ".config" / "google-tv"
 # Wake-on-LAN target: the wlan0 MAC (the TV has no wired connection), one line. It only wakes the TV
 # when TCL's standby mode is Network standby; docs/POWER.md.
 MAC_FILE = CONFIG / "mac"
+NETWORK_STANDBY = "tcl_sys_network_standby_enabled"
 STATE = Path.home() / ".cache" / "google-tv-addr"
 
 # com.tcl.tv.display.ITvDisplayManagerService transaction codes (decompiled
@@ -31,6 +32,10 @@ TX_SET_DYNAMIC_CONTRAST = 47
 TX_GET_DYNAMIC_CONTRAST = 48
 TX_SET_BACKLIGHT = 100
 TX_GET_BACKLIGHT = 101
+# The codes are the AIDL's method order, so a firmware update that adds a method shifts them and a call
+# lands on a different setting. They hold for the jar with this hash; any other refuses (display()).
+DISPLAY_JAR = "/system_ext/framework/com.tcl.tv.display.jar"
+DISPLAY_JAR_SHA256 = "c14f5ea2d1374ab5a6abeae0c6bbfa15a6a0129a12aad7908332c62fc44a4600"
 WINDOW = 0
 APPLY_CURRENT_MODE = 0
 ACT_EXEC_SAVE = 2
@@ -101,8 +106,19 @@ def parcel_int(out):
     return int(words[1], 16)
 
 
+_display_checked = False
+
+
 def display(code, *args):
     """One tcl_tv_display call with int arguments; returns its int result."""
+    global _display_checked
+    if not _display_checked:
+        got = sh("sha256sum", DISPLAY_JAR).split()[0]
+        if got != DISPLAY_JAR_SHA256:
+            raise SystemExit(f"{DISPLAY_JAR} has changed (firmware update?): the transaction codes may "
+                             "have shifted. Re-derive them (docs/TCL-DISPLAY-SERVICE.md), then set "
+                             f"DISPLAY_JAR_SHA256 = \"{got}\"")
+        _display_checked = True
     return parcel_int(sh("service", "call", "tcl_tv_display", str(code), *[x for a in args for x in ("i32", str(a))]))
 
 
@@ -197,6 +213,12 @@ def power(state=None):
             sh("input", "keyevent", "KEYCODE_WAKEUP")
             time.sleep(1)
     elif state == "off":
+        # Remote power-on needs Network standby, the one mode that keeps Wi-Fi up in standby
+        # (docs/POWER.md). Choosing another mode in the TV's menu turns it off with no sign, so it is
+        # put back before every sleep and said so.
+        if sh("settings", "get", "system", NETWORK_STANDBY).strip() != "1":
+            sh("settings", "put", "system", NETWORK_STANDBY, "1")
+            print("network standby was off; turned it back on", file=sys.stderr)
         sh("input", "keyevent", "KEYCODE_SLEEP")
         time.sleep(1)
     elif state is not None:

@@ -41,8 +41,9 @@ Play Store. `app/build.sh` builds it with the bare SDK tools (no Gradle), then:
     adb install -r app/build/tvcompanion.apk
     adb shell pm grant com.jaredgantt.tvcompanion android.permission.WRITE_SECURE_SETTINGS
     adb shell appops set com.jaredgantt.tvcompanion SYSTEM_ALERT_WINDOW allow
+    adb shell cmd notification allow_listener com.jaredgantt.tvcompanion/.Listener   # now / media (VOICE.md)
 
-The two grants persist across reboots and reinstalls with `-r`; a full uninstall loses them.
+The grants persist across reboots and reinstalls with `-r`; a full uninstall loses them.
 
 An app cannot inject key presses into other apps; the adb shell remains the way to drive other
 apps' UIs. Everything else checked so far, it can do itself:

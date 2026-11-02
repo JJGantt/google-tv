@@ -39,10 +39,11 @@ Settings > System > Power > Standby mode has these options (read from the decomp
 | **Network standby** | Doze, plus the internet connection and casting requests | `settings put system tcl_sys_network_standby_enabled 1` |
 | Screenless | audio with the panel off | secure `KEY_SCREENLESS_SERVICE_VALUE` = 1 |
 
-**It must be Network standby (`tcl_sys_network_standby_enabled=1`, set 2026-10-30).** In any other
-mode the Wi-Fi is off in standby and no wake method can reach the TV. Choosing a different standby
-mode in the TV's menu breaks remote power-on. A factory reset would too. Network standby uses
-somewhat more power while the TV is off.
+**It must be Network standby (`tcl_sys_network_standby_enabled=1`).** In any other mode the Wi-Fi is
+off in standby and no wake method can reach the TV. `bin/tv power off` checks it before every sleep
+and puts it back if it has been changed (saying so on stderr), so a different mode chosen in the TV's
+menu lasts only until the next remote power-off; a power-off with the TV's own remote after such a
+change still leaves it unreachable. Network standby uses somewhat more power while the TV is off.
 
 ## Wake methods, measured
 
