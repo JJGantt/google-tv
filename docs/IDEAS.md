@@ -4,7 +4,7 @@ Each entry says what is known about whether it can be done cleanly; the ones sin
 
 ## Session sidebar over whatever is playing
 
-A vertical strip down the right of the screen showing the session he is working in — prompts,
+A vertical strip down the right of the screen showing the active session — prompts,
 replies, tool lines — drawn by the companion app as an overlay (`SYSTEM_ALERT_WINDOW`, already
 granted) hosting a WebView of a narrow hub page. The overlay is non-focusable, so the remote keeps
 driving the app underneath.

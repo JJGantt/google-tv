@@ -4,15 +4,15 @@ Everything raised and not yet done, so none of it is lost. Designs and feasibili
 bigger items are in [IDEAS.md](IDEAS.md); what is already proven is in
 [CAPABILITIES.md](CAPABILITIES.md).
 
-## Blocked on Jared
+## Blocked on the owner
 
-- **Which streaming services he pays for**, to set app_settings `streaming_services` (WATCHING.md §
-  The catalog). Until then the catalog marks nothing as his and `popular` / `added` need `services`.
+- **Which streaming services are subscribed**, to set app_settings `streaming_services` (WATCHING.md §
+  The catalog). Until then the catalog marks nothing as owned and `popular` / `added` need `services`.
 - **Signing in to Netflix and Disney+ on the TV's own apps** (or deciding those are watched on the
-  Apple TV box). Their links stop at a sign-in sheet today. Credentials are his to enter.
+  Apple TV box). Their links stop at a sign-in sheet today. Credentials are entered by the owner.
 - **The Apple TV box's pairing PIN**, read off the screen once, so pyatv can control it
   (WATCHING.md § The Apple TV box).
-- **The Pi browser signed in to Netflix (and other services)**, if he wants their watch history read
+- **The Pi browser signed in to Netflix (and other services)**, so their watch history can be read
   the way YouTube's is. One-time, over VNC.
 
 ## Visible tests (need the TV on and someone awake in the bedroom)
@@ -44,7 +44,7 @@ bigger items are in [IDEAS.md](IDEAS.md); what is already proven is in
 
 ## Watching (WATCHING.md)
 
-- **Recommendations of his own**: a taste profile from YouTube history (what he finishes vs abandons,
+- **Own recommendations**: a taste profile from YouTube history (what is finished vs abandoned,
   `watched N%`), subscriptions and channels, used to rank the `home` feed, `subscription_feed` and
   catalog picks instead of taking YouTube's order. Today a model does this ad hoc from the tools.
 - **The Apple TV box** under control with pyatv once paired: open titles there, read what is
@@ -62,6 +62,5 @@ bigger items are in [IDEAS.md](IDEAS.md); what is already proven is in
 ## Decided against
 
 - **Shrinking another app to make room**: no picture-in-picture or freeform windows on this TV.
-- **"Screen off, sound on"** (TCL's Audio only quick setting) for falling asleep: he wants the
-  picture kept.
+- **"Screen off, sound on"** (TCL's Audio only quick setting): the picture stays on.
 - **Auto TV-off at sleep onset from the watch**: status-hub docs/TODO.md § Dropped.

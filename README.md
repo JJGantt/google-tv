@@ -16,7 +16,7 @@ TV is not rooted; neither is possible (locked bootloader) or needed.
 | [docs/IDEAS.md](docs/IDEAS.md) | ideas and the reasoning behind the built ones: session sidebar overlay, orchestrator TV tools, how to answer "who is on screen" |
 | [docs/VOICE.md](docs/VOICE.md) | how voice reaches the TV: tv_commands, the hub relay, the app's link |
 | [docs/POWER.md](docs/POWER.md) | turning the TV on and off remotely: Network standby, the measured wake methods, the Pi's part |
-| [docs/WATCHING.md](docs/WATCHING.md) | finding something to watch and putting it on: YouTube (public and his account), the cross-service catalog, deep links, the Apple TV box |
+| [docs/WATCHING.md](docs/WATCHING.md) | finding something to watch and putting it on: YouTube (public and the signed-in account), the cross-service catalog, deep links, the Apple TV box |
 | [docs/TODO.md](docs/TODO.md) | every open item: blocked, visible tests still owed, not started, decided against |
 
 ## `bin/tv`

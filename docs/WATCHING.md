@@ -1,7 +1,7 @@
 # Finding something to watch, and putting it on
 
-The aim: any Claude (a session, or the voice assistant) can look through everything available to
-Jared, recommend from what he actually watches rather than from each service's algorithm, and put it
+The aim: any Claude (a session, or the voice assistant) can look through everything available on the
+account, recommend from actual watch history rather than from each service's algorithm, and put it
 on the bedroom TV. This is an evolving feature; open work is in TODO.md § Watching.
 
 Three data MCP tools (data-layer) and one TV op:
@@ -9,7 +9,7 @@ Three data MCP tools (data-layer) and one TV op:
 | Tool | What it gives | Where it runs |
 |---|---|---|
 | `youtube` public ops | `search`, `video` (full description, chapters), `related`, `channel` (newest uploads) | anywhere: parsed from the JSON YouTube embeds in its pages |
-| `youtube` account ops | `history`, `home` (his recommendations), `subscriptions`, `subscription_feed`, `watch_later`, `liked`, `playlists`, `playlist` | the Pi only, through `home_requests` |
+| `youtube` account ops | `history`, `home` (account recommendations), `subscriptions`, `subscription_feed`, `watch_later`, `liked`, `playlists`, `playlist` | the Pi only, through `home_requests` |
 | `catalog` | `search`, `title`, `episodes`, `popular`, `added` across Netflix, Prime Video, Apple TV+, Disney+, Hulu, Max and the rest, each offer with an Android TV deep link | anywhere: JustWatch's GraphQL API |
 | `bedroom_tv` `open` | plays a YouTube URL, or opens a catalog deep link in its app | the TV's app (VOICE.md) |
 
@@ -24,7 +24,7 @@ from Fly as well as the home network.
 `youtubei/v1/get_transcript` answers FAILED_PRECONDITION. Both want a proof-of-origin token that only
 YouTube's own player mints. Chapters and the description are the content signal there is.
 
-## YouTube, his account
+## YouTube, the signed-in account
 
 `data-layer/src/youtubeAccount.ts`, on the Pi only, reached through `home_requests`; how it signs in is
 described there. The bedroom TV's YouTube is on the same account, so its plays are in `history` with how
@@ -43,9 +43,9 @@ URI. Where one lacks the app's package (Apple TV, Disney+), `SERVICES` in catalo
 companion app parses it with `Intent.parseUri` (`open`), and `bin/tv open '<intent:…>'` passes it to
 `am start` whole.
 
-**His services** are app_settings `streaming_services`, a JSON array of catalog.ts `SERVICES` keys
+**Subscribed services** are app_settings `streaming_services`, a JSON array of catalog.ts `SERVICES` keys
 (`["netflix", "amazonprime", …]`). `popular` and `added` default to them, and every offer on one is
-marked "(his)". **Not set yet**: TODO.md § Blocked on Jared.
+marked "(his)". **Not set yet**: TODO.md § Blocked on the owner.
 
 ## What opens on the bedroom TV's own apps (tested 2026-10-30)
 
@@ -59,27 +59,26 @@ marked "(his)". **Not set yet**: TODO.md § Blocked on Jared.
 | Hulu, Max, others | | not tried | |
 
 **Prime's profile picker.** With two profiles on the account, a Prime deep link that cold-starts the
-app stops on "Who's watching?" and `now` reports nothing playing. The second profile ("j") was removed
-2026-10-31 (amazon.com/gp/video/profiles → Edit profile, from the Pi browser), leaving only "jared";
-whether the TV app still shows the picker with one profile is untested. The website does still show it.
-It does not time out on its own (seen 2026-10-31: it sat there until pressed). `key select` (OK,
-DPAD_CENTER) picks "jared" and Prime carries on into the link; with the link's `time=0` removed, a
-movie resumes where it was left (Heat, 2026-10-31, resumed at 8:40). Nothing on the `open` path presses
+app stops on "Who's watching?" and `now` reports nothing playing. The account now has one profile;
+whether the TV app still shows the picker with one profile is untested (the website does).
+It does not time out on its own. `key select` (OK,
+DPAD_CENTER) picks the highlighted profile and Prime carries on into the link; with the link's `time=0` removed, a
+movie resumes where it was left. Nothing on the `open` path presses
 it yet: the picker has no accessibility tree (`bin/tv screen` is empty in Prime), so detecting it means
 a screenshot or inferring it from "Prime foreground, nothing playing" a few seconds after the open.
 
-A sign-in sheet is backed out of with `back`. Signing in is Jared's to do: credentials are never
+A sign-in sheet is backed out of with `back`. Signing in is done by the owner: credentials are never
 typed or chosen by Claude.
 
 ## The Apple TV box on HDMI 1
 
 The bedroom also has an Apple TV ("Bedroom tv", `_companion-link._tcp`).
-His streaming subscriptions may well live there rather than on the TV's apps. `pyatv` sees it
+Streaming subscriptions may live there rather than on the TV's apps. `pyatv` sees it
 (`uvx --from pyatv atvscript scan`) with the Companion, AirPlay and RAOP protocols. Controlling it
 (launching an app, opening a `tv.apple.com` or Netflix URL, play/pause, what is playing) needs
 **one-time Companion pairing, which shows a 4-digit PIN on the Apple TV screen**. That PIN cannot be
 read remotely: the Google TV's `screencap` returns nothing on an HDMI input (protected content), so
-Jared has to read it out once. TODO.md.
+someone in the room has to read it out once. TODO.md.
 
 An earlier pyatv controller exists on the Pi (`~/tv-dashboard/atv_control.py`, March 2026, with the
 `tv-server` unit inactive). Its credentials in `~/.pyatv.conf` are for the **Living Room** Apple TV,
