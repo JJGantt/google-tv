@@ -70,7 +70,8 @@ public class TvLink extends Service {
             if (token == null) { Log.e(TAG, "link: no hub token"); sleep(60_000); continue; }
             HttpURLConnection c = null;
             try {
-                c = (HttpURLConnection) new URL(Config.HUB + "/api/tv/stream?token=" + token).openConnection();
+                c = (HttpURLConnection) new URL(Config.HUB + "/api/tv/stream").openConnection();
+                c.setRequestProperty("X-Hub-Token", token);
                 c.setRequestProperty("Accept", "text/event-stream");
                 c.setConnectTimeout(15_000);
                 // The hub pings every 25s; a minute of nothing is a dead socket.
@@ -271,7 +272,8 @@ public class TvLink extends Service {
     private void answer(String id, JSONObject result, String token) {
         HttpURLConnection c = null;
         try {
-            c = (HttpURLConnection) new URL(Config.HUB + "/api/tv/result?token=" + token).openConnection();
+            c = (HttpURLConnection) new URL(Config.HUB + "/api/tv/result").openConnection();
+            c.setRequestProperty("X-Hub-Token", token);
             c.setRequestMethod("POST");
             c.setDoOutput(true);
             c.setConnectTimeout(15_000);

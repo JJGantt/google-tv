@@ -33,8 +33,8 @@ public class SidebarService extends Service {
         String action = intent != null ? intent.getAction() : null;
         if ("hide".equals(action)) { stopSelf(); return START_NOT_STICKY; }
 
-        String url = Config.sidebarUrl(this);
-        if (url == null) {
+        String token = Config.token(this);
+        if (token == null) {
             Log.e(BootReceiver.TAG, "sidebar: no hub token configured");
             stopSelf();
             return START_NOT_STICKY;
@@ -56,7 +56,7 @@ public class SidebarService extends Service {
                     PixelFormat.TRANSLUCENT);
             lp.gravity = Gravity.TOP | Gravity.END;
             wm.addView(view, lp);
-            view.loadUrl(url);
+            view.loadUrl(Config.SIDEBAR, java.util.Collections.singletonMap("X-Hub-Token", token));
             Log.i(BootReceiver.TAG, "sidebar: shown");
         } else {
             WindowManager.LayoutParams lp = (WindowManager.LayoutParams) view.getLayoutParams();

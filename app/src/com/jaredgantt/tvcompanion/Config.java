@@ -12,9 +12,11 @@ final class Config {
         return c.getSharedPreferences("config", Context.MODE_PRIVATE);
     }
 
-    /** The sidebar page, signed in with the hub's device token (the hub sets its cookie from ?token=). */
-    static String sidebarUrl(Context c) {
-        String token = prefs(c).getString("hub_token", null);
-        return token == null ? null : HUB + "/tv-sidebar?token=" + token;
+    /** The sidebar page. Loaded with the hub token in X-Hub-Token (`token`), never in the URL; the hub
+     *  answers that page load with a cookie, which signs in the page's own requests. */
+    static final String SIDEBAR = HUB + "/tv-sidebar";
+
+    static String token(Context c) {
+        return prefs(c).getString("hub_token", null);
     }
 }
