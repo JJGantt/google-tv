@@ -60,6 +60,20 @@ Each test turned the TV off over adb, waited 60s or more in standby, then tried 
 The longest standby tested was a few minutes. Whether Wake-on-LAN still works after hours in
 standby (the overnight case) is not yet measured: TODO.md.
 
+## Inactivity auto-off
+
+The TV turns itself off after **4 hours with no remote input**, even while video plays, so falling
+asleep with it on does not leave it on all night. This is Android's attentive timeout, secure
+`attentive_timeout` in ms (14400000), and it is the same setting as the menu's Settings > System >
+Power & Energy > Energy saver "turn off" choice (Never / 4 / 6 / 8 hours, read from the decompiled
+`TvSettings.apk`). The framework shows a 30s warning first (`mAttentiveWarningDurationConfig`).
+
+`sleep_timeout` (about 12h here) is NOT this: it only counts while nothing holds a wake lock, and a
+playing video holds one, so it never fires during playback. `-1` in `attentive_timeout` means never.
+
+Not yet verified: that it fires overnight, and whether adb-driven actions (`open` from voice) count
+as input and restart the 4 hours.
+
 ## The app's link in standby
 
 While the TV is off, `TvLink`'s stream to the hub is down, even in Network standby. A `now` sent
