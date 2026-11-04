@@ -74,6 +74,21 @@ playing video holds one, so it never fires during playback. `-1` in `attentive_t
 Not yet verified: that it fires overnight, and whether adb-driven actions (`open` from voice) count
 as input and restart the 4 hours.
 
+## Sleep timer
+
+`bin/tv sleep <minutes>` turns the TV off that many minutes from now (`bedroom_tv` op `sleep`, run by
+data-layer `tvHome.ts`); `sleep off` cancels, bare `sleep` prints when it fires or `none`. A new one
+replaces the pending one. It is a one-shot transient systemd timer, `bedroom-tv-sleep.timer`, in the
+Pi's user manager, so it survives data-http restarting (every `pull-repos` update restarts it); it
+does not survive a reboot. systemd only, so the Pi's, not the Mac's. When it fires it runs
+`bin/tv sleep fire`, which does `power off` and checks the TV reports off, reporting to the ops
+responder as `bedroom-tv-sleep` if it does not. The fire runs whatever `bin/tv` is checked out at that
+moment.
+
+The TV has its own sleep timer in TCL's settings (global/system `tcl_app_power_off_time_delay` and
+`tcl_app_power_off_time_expire`, `-1`/`0` when unset). Whether writing those arms it, and whether it
+counts down during playback, is untested (TODO.md), so the Pi's timer is the one used.
+
 ## The app's link in standby
 
 While the TV is off, `TvLink`'s stream to the hub is down, even in Network standby. A `now` sent

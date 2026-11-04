@@ -25,7 +25,7 @@ nothing here talks to the TV directly; Supabase and the hub carry it:
 
 `power` (done by the Pi, not the app: POWER.md), `brightness`, `contrast`, `night`, `volume`,
 `open` (a YouTube URL in the YouTube app, or a catalog `intent:` deep link: WATCHING.md),
-`launch`, `sidebar`, `overlay`, `now`, `media`, `input`, `key`. Verified end to end on 2026-10-30 for `brightness` (read) and
+`launch`, `sidebar`, `overlay`, `now`, `media`, `input`, `key`, `sleep` (the Pi's: POWER.md § Sleep timer). Verified end to end on 2026-10-30 for `brightness` (read) and
 `now` (app, title, position); the rest run the same code paths `bin/tv` proved, from inside the app.
 
 `now` reads media sessions, which Android allows to an enabled notification listener:
@@ -54,8 +54,8 @@ HDMI 2 (CEC reports it on port 2). It wakes the TV first, like `open`.
 An app cannot turn the TV off or on (`goToSleep` is a system permission), so `power` is the Pi's
 (POWER.md). An app cannot inject key presses into another app either, so `key` (back, home, the
 arrows, select) is the Pi's too: data-layer `tvHome.ts` runs `bin/tv key` over adb and answers the
-row, and the hub leaves `power` and `key` rows alone. The Pi also presses OK on Prime Video's "Who's
+row, and the hub leaves `power`, `key` and `sleep` rows alone. The Pi also presses OK on Prime Video's "Who's
 watching?" picker after an `open` or `launch` into Prime (WATCHING.md § Prime's profile picker). While the TV is off the app is not running:
-`open`, `launch` and `input` wait for the Pi to wake it, `key` answers `the TV is off`, and anything
+`open`, `launch` and `input` wait for the Pi to wake it, `key` and setting a `sleep` answer `the TV is off`, and anything
 else answers `the TV is off (its app is not connected)`. Screenshots stay with `bin/tv` over adb, so
 the orchestrator hands them to a session, which has the `tv` skill.

@@ -17,6 +17,8 @@ bigger items are in [IDEAS.md](IDEAS.md); what is already proven is in
 
 ## Visible tests (need the TV on and someone awake in the bedroom)
 
+- TCL's own sleep timer (`tcl_app_power_off_time_delay` / `_expire`, POWER.md § Sleep timer): whether
+  writing it arms it and whether it counts during playback. If both, it could replace the Pi's timer.
 - An overlay over the Apple TV (HDMI 1) picture: `OverlayService` is built and permitted, never shown.
 - **Wake after a long standby** (POWER.md): Wake-on-LAN is measured after minutes in standby, not
   hours. The first real morning use will show it; if it fails, the adb fallback in `bin/tv power on`

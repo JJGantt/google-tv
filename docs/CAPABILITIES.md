@@ -18,6 +18,7 @@ to verified without doing it.
 | Set volume | `--set N` is **ignored** by TCL's audio (returns, level unchanged); `bin/tv` steps with `KEYCODE_VOLUME_UP/DOWN` and reads back after each press | verified: 5 → 4 with one key press. The key shows the volume bar briefly |
 | Power state | `dumpsys power` → `mWakefulness` | verified (read "Awake") |
 | Sleep / wake | `bin/tv power off` (`KEYCODE_SLEEP`) / `power on` (Wake-on-LAN, adb fallback) | verified from the Mac and the Pi, after minutes in standby; needs Network standby (POWER.md) |
+| Sleep timer | `bin/tv sleep <minutes>`, a systemd timer on the Pi running `power off` (POWER.md) | first set 2026-11-04; firing not yet seen |
 | Inactivity auto-off | `settings put secure attentive_timeout <ms>`, set to 4h (14400000) | set 2026-11-03 and read back from `dumpsys power`; not yet seen firing overnight (POWER.md) |
 | Deep links into streaming apps | `bin/tv open '<intent:…>'`, from the `catalog` tool | verified: Prime Video and Apple TV land on the title; Netflix and Disney+ stop at sign-in (WATCHING.md) |
 | Screenshot of an HDMI input | `screencap` | fails: returns nothing on an HDMI input |
