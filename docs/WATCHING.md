@@ -58,14 +58,20 @@ marked "(his)". **Not set yet**: TODO.md § Blocked on the owner.
 | Disney+ | catalog link | **no** | the same sign-in sheet |
 | Hulu, Max, others | | not tried | |
 
-**Prime's profile picker.** With two profiles on the account, a Prime deep link that cold-starts the
-app stops on "Who's watching?" and `now` reports nothing playing. The account now has one profile;
-whether the TV app still shows the picker with one profile is untested (the website does).
-It does not time out on its own. `key select` (OK,
-DPAD_CENTER) picks the highlighted profile and Prime carries on into the link; with the link's `time=0` removed, a
-movie resumes where it was left. Nothing on the `open` path presses
-it yet: the picker has no accessibility tree (`bin/tv screen` is empty in Prime), so detecting it means
-a screenshot or inferring it from "Prime foreground, nothing playing" a few seconds after the open.
+**Prime's profile picker.** A Prime deep link that cold-starts the app stops on "Who's watching?",
+even with one profile on the account, and `now` reports nothing playing. It does not time out on its
+own. `key select` (OK, DPAD_CENTER) picks the highlighted profile, the last one used, and Prime carries
+on into the link; with the link's `time=0` removed, a movie resumes where it was left.
+
+The Pi presses it: every `open` or `launch` that lands in Prime runs `bin/tv profile prime` once the TV
+is awake (data-layer `tvHome.ts`). The picker has no accessibility tree (`bin/tv screen` is empty in
+Prime) and logs nothing, so `profile` reads the screen: a screenshot through `tesseract` (installed on
+the Pi, `tesseract-ocr`; about 35 MB and a quarter of a second a look), up to 20 s, pressing OK only
+when the text says "Who's watching?", and stopping early once Prime shows a page of other text. It
+then reads the screen again and fails if the picker is still there; a failure, or a run where every
+capture was blank (DRM playback captures as solid black), is logged as an error by data-http. OK is
+never pressed on anything but the picker, because on a rental's title page the focused button is the
+purchase.
 
 A sign-in sheet is backed out of with `back`. Signing in is done by the owner: credentials are never
 typed or chosen by Claude.

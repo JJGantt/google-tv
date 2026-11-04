@@ -294,6 +294,63 @@ def screenshot(path="tv.png"):
     print(path)
 
 
+# "Who's watching?" as tesseract reads it off a downscaled screenshot (the apostrophe comes and goes).
+PICKER = re.compile(r"who.{0,2}s\s+watching", re.I)
+
+
+def foreground():
+    m = re.search(r"mCurrentFocus=Window\{\S+ \S+ ([^}/ ]+)", sh("dumpsys", "window"))
+    return m.group(1) if m else None
+
+
+def screen_text():
+    """(text, black): what tesseract reads on screen now. A protected surface (DRM playback, an HDMI
+    input) captures as solid black, which is told apart from a screen that merely has no text."""
+    from PIL import Image
+    import io
+    png = subprocess.run(["adb", "-s", serial(), "exec-out", "screencap", "-p"], capture_output=True, timeout=30).stdout
+    im = Image.open(io.BytesIO(png)).convert("L")
+    im = im.resize((960, im.height * 960 // im.width))
+    if im.getextrema()[1] < 16:
+        return "", True
+    buf = io.BytesIO()
+    im.save(buf, "PNG")
+    ocr = subprocess.run(["tesseract", "stdin", "stdout"], input=buf.getvalue(), capture_output=True, timeout=30)
+    return ocr.stdout.decode(errors="replace"), False
+
+
+def profile(app="prime", seconds="20"):
+    """Get past APP's "Who's watching?" profile picker after it was opened: OK picks the highlighted
+    profile, which is the last one used, and the app carries on into the link it was given. The picker
+    has no accessibility tree and logs nothing, so it is found by reading the screen; this looks for at
+    most `seconds`, and stops early once the app shows a page with text on it that is not the picker.
+    Exits non-zero if the picker is still up after OK, or if every look was a blank capture."""
+    pkg = APPS.get(app, app)
+    end = time.time() + float(seconds)
+    looks = blank = 0
+    while time.time() < end:
+        if foreground() != pkg:
+            time.sleep(1)
+            continue
+        txt, black = screen_text()
+        looks += 1
+        blank += black
+        if PICKER.search(txt):
+            key("select")
+            time.sleep(3)
+            if PICKER.search(screen_text()[0]):
+                raise SystemExit("the profile picker is still showing after OK")
+            print("picked the profile")
+            return
+        if len(re.sub(r"\s", "", txt)) > 40:
+            print("no profile picker")
+            return
+        time.sleep(1)
+    if looks and blank == looks:
+        raise SystemExit(f"{app}: every screenshot was blank, so the picker cannot be seen")
+    print(f"no profile picker ({app} {'never came to the front' if not looks else 'showed no page'} in {seconds}s)")
+
+
 APP = "com.jaredgantt.tvcompanion"
 # The hub's device token, kept per machine outside the repo and pushed into the app on demand.
 HUB_TOKEN_FILE = CONFIG / "hub-token"
@@ -332,7 +389,7 @@ COMMANDS = {
     "brightness": brightness, "contrast": contrast, "dynamic-contrast": dynamic_contrast, "night": night,
     "volume": volume, "power": power, "wake": wake, "now": now,
     "open": open_url, "launch": launch, "input": input_, "key": key, "text": text,
-    "screen": screen, "screenshot": screenshot, "sidebar": sidebar, "overlay": overlay, "link": link,
+    "screen": screen, "screenshot": screenshot, "profile": profile, "sidebar": sidebar, "overlay": overlay, "link": link,
     "shell": lambda *c: print(sh(*c), end=""),
 }
 

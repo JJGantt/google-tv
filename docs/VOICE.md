@@ -54,7 +54,8 @@ HDMI 2 (CEC reports it on port 2). It wakes the TV first, like `open`.
 An app cannot turn the TV off or on (`goToSleep` is a system permission), so `power` is the Pi's
 (POWER.md). An app cannot inject key presses into another app either, so `key` (back, home, the
 arrows, select) is the Pi's too: data-layer `tvHome.ts` runs `bin/tv key` over adb and answers the
-row, and the hub leaves `power` and `key` rows alone. While the TV is off the app is not running:
+row, and the hub leaves `power` and `key` rows alone. The Pi also presses OK on Prime Video's "Who's
+watching?" picker after an `open` or `launch` into Prime (WATCHING.md § Prime's profile picker). While the TV is off the app is not running:
 `open`, `launch` and `input` wait for the Pi to wake it, `key` answers `the TV is off`, and anything
 else answers `the TV is off (its app is not connected)`. Screenshots stay with `bin/tv` over adb, so
 the orchestrator hands them to a session, which has the `tv` skill.

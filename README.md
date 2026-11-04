@@ -39,6 +39,7 @@ own `~/.config/google-tv/`, docs/SETUP.md).
     bin/tv text "<string>"        # types into the focused field
     bin/tv screen                 # on-screen text with tap coordinates; * marks the focused element
     bin/tv screenshot [path]
+    bin/tv profile [app] [s]      # press OK on a "Who's watching?" picker if one shows within s seconds (Prime)
     bin/tv sidebar on [0-1]|off   # the focused session (or the orchestrator, by voice), see-through, down the right (width as a fraction)
     bin/tv overlay "<text>" [s]   # one line in the top-right corner for s seconds
     bin/tv link                   # restart the companion app's connection to the hub (docs/VOICE.md)
