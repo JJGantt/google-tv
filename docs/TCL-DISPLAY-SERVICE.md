@@ -71,7 +71,7 @@ The raw numbers are enum ordinals; the menu's names come from the Settings app
 
 | setting | values |
 |---|---|
-| picture mode (27) | 0 Standard, 1 Vivid, 2 Mild, 3 Studio, 4 Stadium, 5 Game, … 14 Filmmaker (`PICTURE_MODES` in `bin/tv`) |
+| picture mode (27) | 0 Standard, 1 Vivid, 2 Mild, 3 Studio, 4 Stadium, 5 Game, … (`PICTURE_MODES` in `bin/tv`); FILMMAKER MODE reads 60, outside that enum. The menu maps modes through its own table, so set a mode through the menu (`bin/tv picture menu`, then `key dpad_right` on Picture Mode), not tx 26 |
 | colour temperature (54) | `EnColorTmpType`: 0 Cool, 1 Standard, 2 Warm, 3 Personal. The menu greys it out while Blue Light Filter is on |
 | colour space (73) | 0 Auto, 1 Native, 2 Custom, 3 3D LUT. Native shows Rec.709 video across the panel's wide gamut, which oversaturates reds and skin |
 

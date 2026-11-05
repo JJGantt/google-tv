@@ -181,7 +181,8 @@ def picture_settings(what=None):
     if what is not None:
         raise SystemExit("picture [menu]")
     name = lambda names, i: names[i] if 0 <= i < len(names) else f"unknown ({i})"
-    print("picture mode", name(PICTURE_MODES, display(TX_GET_PICTURE_MODE)))
+    mode = display(TX_GET_PICTURE_MODE)
+    print("picture mode", "FILMMAKER MODE" if mode == 60 else name(PICTURE_MODES, mode))
     print("blue light filter", "on" if display(TX_GET_LOW_BLUE, WINDOW) else "off")
     print("colour temperature", name(COLOR_TEMPS, display(TX_GET_COLOR_TEMPERATURE, WINDOW)))
     print("colour space", name(COLOR_SPACES, display(TX_GET_COLOR_SPACE, WINDOW)))
