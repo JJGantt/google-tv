@@ -13,7 +13,11 @@ to verified without doing it.
 | Android `screen_brightness` | `settings put system screen_brightness` | **does nothing to the panel.** Android's own value moves; TCL's Brightness does not. Do not use it |
 | Contrast | `tcl_tv_display` tx 31 `(window=0, type=0, value, act=2)`, read tx 32 | verified: 100 → 60, read back 60 |
 | Dynamic Contrast | tx 47 set / tx 48 read (0 off … 2 High) | verified: High → off |
-| Rest of the picture menu | other `tcl_tv_display` calls (picture mode, colour, HDR, …) | unverified; codes are in TCL-DISPLAY-SERVICE.md |
+| Read colour settings | `bin/tv picture`: picture mode, blue light filter, colour temperature, colour space, saturation, hue | verified 2026-11-05: read Vivid / blue light on / Native / 60, all matching the menu |
+| Set colour space | `tcl_tv_display` tx 72 `(window=0, applyType=0, value, act=2)`, 0 Auto, 1 Native | verified: Native to Auto, read back Auto |
+| Open the Picture menu on screen | `bin/tv picture menu` (PictureActivity with action `android.settings.DISPLAY_SETTINGS`) | verified. Started without that action it closes itself after 500 ms and shows nothing |
+| Screenshot shows the picture settings | no. `screencap` captures the frame before TCL's picture processing, so a colour cast on the panel never appears in a screenshot; read the settings instead | verified |
+| Rest of the picture menu | other `tcl_tv_display` calls (HDR, gamma, white balance, …) | unverified; codes are in TCL-DISPLAY-SERVICE.md |
 | Read volume | `cmd media_session volume --stream 3 --get` (range 0–100) | verified: read 5 |
 | Set volume | `--set N` is **ignored** by TCL's audio (returns, level unchanged); `bin/tv` steps with `KEYCODE_VOLUME_UP/DOWN` and reads back after each press | verified: 5 → 4 with one key press. The key shows the volume bar briefly |
 | Power state | `dumpsys power` → `mWakefulness` | verified (read "Awake") |

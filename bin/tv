@@ -17,6 +17,10 @@ from pathlib import Path
 # every time wireless debugging is re-enabled, so both are discovered by this
 # name and cached; neither is ever written down.
 GUID = "adb-D00650B30E80300FC-jOM1G6"
+# The plain (non-TLS) adb service the TV also announces once `adb tcpip` has been run on it. Its TLS
+# announcement can outlive the port it names (connection refused) while this one still answers, so
+# discovery tries both.
+GUID_PLAIN = GUID.rsplit("-", 1)[0]
 # Per-machine settings kept outside the repo (docs/SETUP.md).
 CONFIG = Path.home() / ".config" / "google-tv"
 # Wake-on-LAN target: the wlan0 MAC (the TV has no wired connection), one line. It only wakes the TV
@@ -33,6 +37,12 @@ TX_SET_DYNAMIC_CONTRAST = 47
 TX_GET_DYNAMIC_CONTRAST = 48
 TX_SET_BACKLIGHT = 100
 TX_GET_BACKLIGHT = 101
+TX_GET_PICTURE_MODE = 27
+TX_GET_SATURATION = 38
+TX_GET_HUE = 34
+TX_GET_COLOR_TEMPERATURE = 54
+TX_GET_COLOR_SPACE = 73
+TX_GET_LOW_BLUE = 109
 # The codes are the AIDL's method order, so a firmware update that adds a method shifts them and a call
 # lands on a different setting. They hold for the jar with this hash; any other refuses (display()).
 DISPLAY_JAR = "/system_ext/framework/com.tcl.tv.display.jar"
@@ -66,25 +76,27 @@ def run(*args, check=True):
 
 
 def discover():
-    """Current ip:port from the TV's mDNS announcement. The Mac's adb resolves
-    mDNS itself; Debian's adb (the Pi) is built without it, so there it is
-    avahi-browse."""
+    """Candidate ip:ports from the TV's mDNS announcements, TLS first, then plain adb. The Mac's adb
+    resolves mDNS itself; Debian's adb (the Pi) is built without it, so there it is avahi-browse."""
+    found = []
     if Path("/usr/bin/avahi-browse").exists():
-        p = subprocess.run(["avahi-browse", "-rpt", "_adb-tls-connect._tcp"],
-                           capture_output=True, text=True, timeout=10)
-        for line in p.stdout.splitlines():
-            f = line.split(";")
-            if f[0] == "=" and f[2] == "IPv4" and f[3] == GUID:
-                return f"{f[7]}:{f[8]}"
-        return None
-    m = re.search(rf"{re.escape(GUID)}\s+_adb-tls-connect\._tcp\s+([\d.]+:\d+)", run("mdns", "services", check=False))
-    return m.group(1) if m else None
+        for svc, name in (("_adb-tls-connect._tcp", GUID), ("_adb._tcp", GUID_PLAIN)):
+            p = subprocess.run(["avahi-browse", "-rpt", svc], capture_output=True, text=True, timeout=10)
+            for line in p.stdout.splitlines():
+                f = line.split(";")
+                if f[0] == "=" and f[2] == "IPv4" and f[3] == name:
+                    found.append(f"{f[7]}:{f[8]}")
+        return found
+    out = run("mdns", "services", check=False)
+    for svc, name in (("_adb-tls-connect._tcp", GUID), ("_adb._tcp", GUID_PLAIN)):
+        found += re.findall(rf"^{re.escape(name)}\s+{re.escape(svc)}\s+([\d.]+:\d+)", out, re.M)
+    return found
 
 
 def serial():
     """Connect if needed and return the adb serial for the TV."""
     cached = STATE.read_text().strip() if STATE.exists() else None
-    for addr in (cached, discover()):
+    for addr in (cached, *discover()):
         if not addr:
             continue
         run("connect", addr, check=False)
@@ -147,6 +159,36 @@ def dynamic_contrast(value=None):
     """0 off, 1 low, 2 high (the menu's Dynamic Contrast)."""
     print(picture("dynamic contrast", (TX_GET_DYNAMIC_CONTRAST, WINDOW),
                   lambda v: (TX_SET_DYNAMIC_CONTRAST, WINDOW, APPLY_CURRENT_MODE, v, ACT_EXEC_SAVE), value, hi=2))
+
+
+# Raw values -> the menu's names, from the TV's own Settings app (com.tcl.settings EnPicture and
+# com.tcl.tv.pq.EnColorTmpType; docs/TCL-DISPLAY-SERVICE.md § Values).
+PICTURE_MODES = ["Standard", "Vivid", "Mild", "Studio", "Stadium", "Game", "Game vivid", "Game normal", "PC",
+                 "SDR pro", "SDR AI adaptive", "Smart Q", "IMAX", "SDR IQ", "Filmmaker", "Photo"]
+COLOR_TEMPS = ["Cool", "Standard", "Warm", "Personal", "Custom"]
+COLOR_SPACES = ["Auto", "Native", "Custom", "3D LUT"]
+
+
+def picture_settings(what=None):
+    """No argument: the colour settings of the current input, by their menu names. `menu`: open the
+    Picture panel on screen. PictureActivity only shows the panel when started with the
+    DISPLAY_SETTINGS action; started bare it closes itself after half a second and shows nothing."""
+    if what == "menu":
+        sh("am", "start", "-a", "android.settings.DISPLAY_SETTINGS",
+           "-n", "com.android.tv.settings/com.tcl.settings.PictureActivity")
+        print("opened")
+        return
+    if what is not None:
+        raise SystemExit("picture [menu]")
+    name = lambda names, i: names[i] if 0 <= i < len(names) else f"unknown ({i})"
+    print("picture mode", name(PICTURE_MODES, display(TX_GET_PICTURE_MODE)))
+    print("blue light filter", "on" if display(TX_GET_LOW_BLUE, WINDOW) else "off")
+    print("colour temperature", name(COLOR_TEMPS, display(TX_GET_COLOR_TEMPERATURE, WINDOW)))
+    print("colour space", name(COLOR_SPACES, display(TX_GET_COLOR_SPACE, WINDOW)))
+    print("saturation", display(TX_GET_SATURATION, WINDOW))
+    print("hue", display(TX_GET_HUE, WINDOW))
+    print("brightness", display(TX_GET_BACKLIGHT))
+    print("contrast", display(TX_GET_CONTRAST, WINDOW))
 
 
 # The settings he chose for watching in bed on 2026-10-30.
@@ -439,6 +481,7 @@ def overlay(text_, seconds="5"):
 
 COMMANDS = {
     "brightness": brightness, "contrast": contrast, "dynamic-contrast": dynamic_contrast, "night": night,
+    "picture": picture_settings,
     "volume": volume, "power": power, "wake": wake, "now": now, "sleep": sleep_timer,
     "open": open_url, "launch": launch, "input": input_, "key": key, "text": text,
     "screen": screen, "screenshot": screenshot, "profile": profile, "sidebar": sidebar, "overlay": overlay, "link": link,

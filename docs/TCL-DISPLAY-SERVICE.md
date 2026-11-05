@@ -53,8 +53,27 @@ changing some other setting. Re-derive the codes, then update the hash:
 | 31 / 32 | setContrast / getContrast `(window, type, value, act)` / `(window)` |
 | 47 / 48 | setDynamicContrast / getDynamicContrast (0 off, 2 High) |
 | 100 / 101 | setBacklight / getBacklight (menu "Brightness") |
-| 108 / 109 | setLowBlueRay `(window, value, act)` / getLowBlueRay (reads 1 here) |
+| 108 / 109 | setLowBlueRay `(window, value, act)` / getLowBlueRay: the menu's Blue Light Filter, 1 on |
+| 33 / 34 | setHue / getHue `(window)` |
+| 37 / 38 | setSaturation / getSaturation `(window)` |
+| 53 / 54 | setColorTemperature / getColorTemperature `(window)` |
+| 72 / 73 | setColorSpaceMode `(window, type, value, act)` / getColorSpaceMode `(window)` |
 | 182 | setPictureModeByType |
 | 172 / 173 | getHdrMode / setHdrMode |
 
-Exercised: 100/101, 30, 31/32, 47/48, and the 109 read.
+Exercised: 100/101, 30, 31/32, 47/48, 72/73, and the 27, 34, 38, 54 and 109 reads.
+
+## Values
+
+The raw numbers are enum ordinals; the menu's names come from the Settings app
+(`/system_ext/priv-app/TvSettings/TvSettings.apk`, `com.tcl.settings.middleware.picture.EnPicture`).
+`bin/tv picture` prints them by name.
+
+| setting | values |
+|---|---|
+| picture mode (27) | 0 Standard, 1 Vivid, 2 Mild, 3 Studio, 4 Stadium, 5 Game, … 14 Filmmaker (`PICTURE_MODES` in `bin/tv`) |
+| colour temperature (54) | `EnColorTmpType`: 0 Cool, 1 Standard, 2 Warm, 3 Personal. The menu greys it out while Blue Light Filter is on |
+| colour space (73) | 0 Auto, 1 Native, 2 Custom, 3 3D LUT. Native shows Rec.709 video across the panel's wide gamut, which oversaturates reds and skin |
+
+Picture settings are kept per input ("Apply All Picture Settings: Current Input" in the menu), so the
+built-in apps and HDMI 1 each have their own.
