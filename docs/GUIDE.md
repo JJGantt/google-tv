@@ -42,6 +42,12 @@ site icon from Google's favicon service (`SITES` in `Guide.java` maps package to
 rim traced around its shape. A package missing from `SITES` gets no badge. The apps' own launcher
 icons are full square tiles and too heavy for a badge.
 
+## On the phone
+
+The hub's phone page has the same screen as its right-hand pane (status-hub `cards/guide.js`): the
+same shelves, badges and notes, redrawn when the tool's `guide_refresh` reaches the hub, which passes
+it to the phone as a `guide` event on the session stream. A tap plays the item on the TV.
+
 ## Limits
 
 Netflix is not signed in on the TV (WATCHING.md), so a Netflix item stops at its sign-in screen.
