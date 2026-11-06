@@ -104,13 +104,25 @@ public class TvLink extends Service {
             id = cmd.getString("id");
             JSONObject args = cmd.optJSONObject("args");
             if (args == null) args = new JSONObject();
+            // The hub replays unanswered rows when the stream reconnects, so a command whose answer was
+            // lost arrives again: it is answered with what it did the first time, never done twice.
+            JSONObject before = done.get(id);
+            if (before != null) { answer(id, before, token); return; }
             Log.i(TAG, "link: " + cmd.getString("op") + " " + args);
             result = run(cmd.getString("op"), args);
         } catch (Exception e) {
             try { result.put("ok", false).put("error", String.valueOf(e.getMessage())); } catch (Exception ignored) {}
         }
-        if (id != null) answer(id, result, token);
+        if (id != null) {
+            done.put(id, result);
+            if (done.size() > 50) done.remove(done.keySet().iterator().next());
+            answer(id, result, token);
+        }
     }
+
+    // The last commands done here and what each answered, for a replay (handle).
+    // A plain map trimmed by hand: this d8 fails on the anonymous subclass removeEldestEntry needs.
+    private final java.util.LinkedHashMap<String, JSONObject> done = new java.util.LinkedHashMap<>();
 
     /** One command. Every setter answers with the value the TV reports afterwards, not the one asked for. */
     private JSONObject run(String op, JSONObject a) throws Exception {
@@ -158,7 +170,7 @@ public class TvLink extends Service {
                         .putExtra("text", a.getString("text")).putExtra("seconds", a.optInt("seconds", 5)));
                 return r;
             case "now": return now(r);
-            case "media": return media(a.getString("action"), a);
+            case "media": return media(a.getString("action"));
             case "input": {
                 // HDMI n is TCL's passthrough input HW(14+n), opened the way the TV's own input picker
                 // opens it (bin/tv input).
@@ -229,26 +241,17 @@ public class TvLink extends Service {
         return Math.max(0, p);
     }
 
-    /** Transport controls on whatever is playing, through its media session (the same grant `now`
-     *  uses). Skips are a seek from the live position, which every app that reports a position takes,
-     *  where fastForward/rewind mean something different in each app. Answers with `now` afterwards. */
-    private JSONObject media(String action, JSONObject a) throws Exception {
+    /** Play or pause whatever is playing, through its media session (the same grant `now` uses).
+     *  Answers with `now` afterwards. Nothing that seeks: a position is the app's claim extrapolated
+     *  (positionMs), which is wrong whenever the app's claim is. */
+    private JSONObject media(String action) throws Exception {
         MediaController mc = current();
         JSONObject r = new JSONObject().put("ok", true);
         if (mc == null) return r.put("ok", false).put("error", "nothing is playing");
         MediaController.TransportControls t = mc.getTransportControls();
-        PlaybackState st = mc.getPlaybackState();
-        long pos = positionMs(st);
         switch (action) {
             case "play": t.play(); break;
             case "pause": t.pause(); break;
-            case "toggle": if (st.getState() == PlaybackState.STATE_PLAYING) t.pause(); else t.play(); break;
-            case "stop": t.stop(); break;
-            case "next": t.skipToNext(); break;
-            case "previous": t.skipToPrevious(); break;
-            case "forward": t.seekTo(pos + (long) (a.optDouble("seconds", 30) * 1000)); break;
-            case "back": t.seekTo(Math.max(0, pos - (long) (a.optDouble("seconds", 10) * 1000))); break;
-            case "seek": t.seekTo((long) (a.getDouble("seconds") * 1000)); break;
             default: return r.put("ok", false).put("error", "unknown action " + action);
         }
         // The app applies it asynchronously; read back once it has had a moment to.
@@ -276,7 +279,17 @@ public class TvLink extends Service {
         return r.put("playing", false);
     }
 
+    /** Posts the answer, retrying for about a quarter of a minute: an answer that never lands leaves the
+     *  caller timing out on a command that was done. */
     private void answer(String id, JSONObject result, String token) {
+        for (long wait = 1000; ; wait *= 2) {
+            if (post(id, result, token)) return;
+            if (wait > 8000) { Log.e(TAG, "link: answer to " + id + " never landed"); return; }
+            sleep(wait);
+        }
+    }
+
+    private boolean post(String id, JSONObject result, String token) {
         HttpURLConnection c = null;
         try {
             c = (HttpURLConnection) new URL(Config.HUB + "/api/tv/result").openConnection();
@@ -289,12 +302,15 @@ public class TvLink extends Service {
             try (OutputStream o = c.getOutputStream()) {
                 o.write(new JSONObject().put("id", id).put("result", result).toString().getBytes(StandardCharsets.UTF_8));
             }
-            c.getResponseCode();
+            int code = c.getResponseCode();
+            if (code == 200) return true;
+            Log.w(TAG, "link: answer " + code);
         } catch (Exception e) {
             Log.w(TAG, "link: answer failed " + e);
         } finally {
             if (c != null) c.disconnect();
         }
+        return false;
     }
 
     private static void sleep(long ms) {
