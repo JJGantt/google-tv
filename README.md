@@ -17,6 +17,7 @@ TV is not rooted; neither is possible (locked bootloader) or needed.
 | [docs/VOICE.md](docs/VOICE.md) | how voice reaches the TV: tv_commands, the hub relay, the app's link |
 | [docs/POWER.md](docs/POWER.md) | turning the TV on and off remotely: Network standby, the measured wake methods, the Pi's part |
 | [docs/WATCHING.md](docs/WATCHING.md) | finding something to watch and putting it on: YouTube (public and the signed-in account), the cross-service catalog, deep links, the Apple TV box |
+| [docs/PICKS.md](docs/PICKS.md) | the picks screen: a grid of chosen videos and shows, each opening in its app |
 | [docs/TODO.md](docs/TODO.md) | every open item: blocked, visible tests still owed, not started, decided against |
 
 ## `bin/tv`
@@ -42,6 +43,7 @@ own `~/.config/google-tv/`, docs/SETUP.md).
     bin/tv profile [app] [s]      # press OK on a "Who's watching?" picker if one shows within s seconds (Prime)
     bin/tv sidebar on [0-1]|off   # the focused session (or the orchestrator, by voice), see-through, down the right (width as a fraction)
     bin/tv overlay "<text>" [s]   # one line in the top-right corner for s seconds
+    bin/tv picks [file.json]      # the picks screen; with a file, replace its list first (docs/PICKS.md)
     bin/tv link                   # restart the companion app's connection to the hub (docs/VOICE.md)
     bin/tv shell <cmd...>
 

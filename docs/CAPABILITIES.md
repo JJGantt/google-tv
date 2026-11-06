@@ -50,6 +50,7 @@ Play Store. `app/build.sh` builds it with the bare SDK tools (no Gradle), then:
     adb shell cmd notification allow_listener com.jaredgantt.tvcompanion/.Listener   # now / media (VOICE.md)
 
 The grants persist across reboots and reinstalls with `-r`; a full uninstall loses them.
+A reinstall stops the app's process, so `bin/tv link` afterwards restarts its connection to the hub.
 
 An app cannot inject key presses into other apps; the adb shell remains the way to drive other
 apps' UIs. Everything else checked so far, it can do itself:
