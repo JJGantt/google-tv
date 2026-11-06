@@ -9,7 +9,8 @@ Open it with `bin/tv launch guide`, or the data MCP's `tv_guide` `show` (by voic
 Supabase, so the voice orchestrator on Fly can change them (data-layer 00171, `tvGuide.ts`):
 
 - `tv_shelves`: `id` (`sh_…`), `title`, `position`.
-- `tv_shelf_items`: `id` (`pk_…`), `shelf_id`, `position`, `title`, `url`, `package`, `image`.
+- `tv_shelf_items`: `id` (`pk_…`), `shelf_id`, `position`, `title`, `url`, `package`, `image`, `note`
+  (00175).
 - `tv_guide_history` (00172, renamed in 00174): the whole screen as it stood after every change, for `history`,
   `history_view` and `restore`. Never pruned.
 
@@ -18,6 +19,11 @@ the only writer. Its description is the orchestrator's whole instruction set: ch
 asked for, `view` to see everything, add / remove / replace / move items, create / rename / move /
 delete shelves, and the history ops. Item `title` is the plain title; the service is shown by the
 badge, never in the title.
+
+An item's `note` is a short annotation (a score, a runtime, a tag), set for any number of items in one
+`annotate` call or on items in `add` / `replace`. The screen draws it as a single-line pill at the
+bottom left of the thumbnail, opposite the badge, cut off with an ellipsis past the card's width;
+no note draws nothing.
 
 What an item opens is worked out from its URL (`resolveItem`): an `intent:` deep link from the
 `catalog` tool names its own package; a YouTube watch URL opens in the YouTube app, and its thumbnail

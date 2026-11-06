@@ -179,6 +179,27 @@ public class Guide extends Activity {
                 if (bm != null) runOnUiThread(() -> badge.setImageBitmap(bm));
             }, "guide-badge").start();
         }
+        String note = it.optString("note");
+        if (!note.isEmpty() && !"null".equals(note)) {
+            // The item's annotation (tvGuide.ts `annotate`): a pill at the bottom left, where streaming
+            // apps put a runtime, clear of the badge at the top right.
+            TextView pill = new TextView(this);
+            pill.setText(note);
+            pill.setTextColor(Color.WHITE);
+            pill.setTextSize(14);
+            pill.setSingleLine(true);
+            pill.setEllipsize(TextUtils.TruncateAt.END);
+            pill.setMaxWidth(CARD_W - 24);
+            pill.setPadding(14, 4, 14, 6);
+            GradientDrawable pb = new GradientDrawable();
+            pb.setCornerRadius(10);
+            pb.setColor(0xD9000000);
+            pill.setBackground(pb);
+            FrameLayout.LayoutParams np = new FrameLayout.LayoutParams(FrameLayout.LayoutParams.WRAP_CONTENT,
+                    FrameLayout.LayoutParams.WRAP_CONTENT, Gravity.BOTTOM | Gravity.START);
+            np.setMargins(12, 0, 0, 12);
+            thumb.addView(pill, np);
+        }
         card.addView(thumb);
 
         TextView title = new TextView(this);
