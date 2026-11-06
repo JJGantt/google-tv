@@ -71,8 +71,9 @@ Probes run invisibly: `am broadcast -n com.jaredgantt.tvcompanion/.ProbeReceiver
 
 The hub's `/tv-sidebar` page (status-hub docs/HUB-INTERNALS.md § The TV sidebar) in a WebView overlay
 down the right 30% of the screen (`--ef width` / `bin/tv sidebar on 0.25` to change it): one
-conversation, live, see-through, over whatever is playing: the focused session, or the voice
-orchestrator's conversation. Which one, its text size and its width are hub settings the `sidebar`
+conversation, live, see-through, over whatever is playing: the focused session, the voice
+orchestrator's conversation, or `content`, a blank canvas showing whatever markdown an agent puts on
+it (the voice op's `content`). Which one, its text size and its width are hub settings the `sidebar`
 voice op's `view`, `font_size` and `width` change (status-hub HUB-INTERNALS § The TV sidebar); by
 voice the width defaults to 35%, while `bin/tv` passes its own. Verified 2026-10-30 over YouTube: it rendered
 the session as it updated, and the remote still drove the video. Over HDMI unverified.
