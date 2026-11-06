@@ -169,6 +169,13 @@ public class TvLink extends Service {
                         .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
                 return r.put("hdmi", n);
             }
+            case "picks_refresh": {
+                // The shelves changed (data-layer tvPicks.ts). Only a screen already in front redraws;
+                // this never brings it up.
+                Picks p = Picks.shown;
+                if (p != null) p.reload();
+                return r.put("redrawn", p != null);
+            }
             default: return r.put("ok", false).put("error", "unknown op " + op);
         }
     }

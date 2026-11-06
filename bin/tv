@@ -5,8 +5,6 @@ Runs unchanged on the Mac and the Pi; each machine is paired with the TV
 separately (see docs/SETUP.md). Every command prints what the TV reports
 back, not what was requested, so a silent failure shows up as a wrong value.
 """
-import base64
-import json
 import os
 import re
 import socket
@@ -483,29 +481,12 @@ def overlay(text_, seconds="5"):
        "--es", "text", text_, "--ei", "seconds", str(int(seconds)))
 
 
-def picks(path=None):
-    """Replace the picks screen's list with a JSON file, then open it (docs/PICKS.md). No file: just open it."""
-    if path:
-        data = Path(path).read_bytes()
-        items = json.loads(data)
-        if not isinstance(items, list):
-            raise SystemExit("picks: the file must be a JSON array")
-        out = sh("am", "broadcast", "-n", f"{APP}/.PicksReceiver", "--es", "json_b64", base64.b64encode(data).decode())
-        m = re.search(r'data="([^"]*)"', out)
-        if not m or not m.group(1).startswith("stored"):
-            raise SystemExit(f"picks: {m.group(1) if m else out.strip()}")
-        print(m.group(1))
-    sh("am", "start", "-n", f"{APP}/.Picks")
-    print("open")
-
-
 COMMANDS = {
     "brightness": brightness, "contrast": contrast, "dynamic-contrast": dynamic_contrast, "night": night,
     "picture": picture_settings,
     "volume": volume, "power": power, "wake": wake, "now": now, "sleep": sleep_timer,
     "open": open_url, "launch": launch, "input": input_, "key": key, "text": text,
     "screen": screen, "screenshot": screenshot, "profile": profile, "sidebar": sidebar, "overlay": overlay, "link": link,
-    "picks": picks,
     "shell": lambda *c: print(sh(*c), end=""),
 }
 
