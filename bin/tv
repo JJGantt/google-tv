@@ -472,13 +472,14 @@ def apple_page():
 def appletv(mode="check", seconds="15"):
     """What the Apple TV app is showing, as one JSON line: `title_page` with its main button's action,
     or none (no title page: the film or some other screen). `play` waits up to `seconds` for a title
-    page and presses OK when its action is Play or Resume and nothing on it is sold (OK lands on the
-    main button, and on a page selling a trial or a rental that button is the purchase), then checks
-    the page has gone."""
+    page (or for the app to start playing by itself) and presses OK when its action is Play or Resume
+    and nothing on it is sold (OK lands on the main button, and on a page selling a trial or a rental
+    that button is the purchase), then checks the page has gone."""
     import json
     end = time.time() + float(seconds)
     page = apple_page()
-    while mode == "play" and page is None and time.time() < end:
+    # A link can go straight into playback, with no title page to wait for.
+    while mode == "play" and page is None and time.time() < end and not audio_flowing(APPS["appletv"]):
         time.sleep(1)
         page = apple_page()
     out = {"foreground": foreground(), "title_page": page is not None}
