@@ -21,9 +21,9 @@ delete shelves, and the history ops. Item `title` is the plain title; the servic
 badge, never in the title.
 
 An item's `note` is a short annotation (a score, a runtime, a tag), set for any number of items in one
-`annotate` call or on items in `add` / `replace`. The screen draws it as a single-line pill at the
-bottom left of the thumbnail, opposite the badge, cut off with an ellipsis past the card's width;
-no note draws nothing.
+`annotate` call or on items in `add` / `replace`. The screen draws it as cyan text on an opaque black pill at the
+bottom left of the thumbnail, opposite the badge. Any length is stored; a long note wraps upward to four lines, which
+reach the badge, and a longer one ends in an ellipsis. No note draws nothing.
 
 What an item opens is worked out from its URL (`resolveItem`): an `intent:` deep link from the
 `catalog` tool names its own package; a YouTube watch URL opens in the YouTube app, and its thumbnail

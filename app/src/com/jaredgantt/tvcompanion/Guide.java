@@ -185,15 +185,18 @@ public class Guide extends Activity {
             // apps put a runtime, clear of the badge at the top right.
             TextView pill = new TextView(this);
             pill.setText(note);
-            pill.setTextColor(Color.WHITE);
+            pill.setTextColor(0xFF33D6F0);
             pill.setTextSize(14);
-            pill.setSingleLine(true);
-            pill.setEllipsize(TextUtils.TruncateAt.END);
+            // Any length: it wraps, growing up from the bottom; four lines reach the badge's lower
+            // edge, and a longer note ends in an ellipsis there. Cyan on opaque black, so it never
+            // reads as part of the picture.
             pill.setMaxWidth(CARD_W - 24);
+            pill.setMaxLines(4);
+            pill.setEllipsize(TextUtils.TruncateAt.END);
             pill.setPadding(14, 4, 14, 6);
             GradientDrawable pb = new GradientDrawable();
             pb.setCornerRadius(10);
-            pb.setColor(0xD9000000);
+            pb.setColor(0xFF000000);
             pill.setBackground(pb);
             FrameLayout.LayoutParams np = new FrameLayout.LayoutParams(FrameLayout.LayoutParams.WRAP_CONTENT,
                     FrameLayout.LayoutParams.WRAP_CONTENT, Gravity.BOTTOM | Gravity.START);
