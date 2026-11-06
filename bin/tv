@@ -477,27 +477,26 @@ def apple_page():
     return {"action": main.rsplit(", ", 1)[1].strip(), "buttons": buttons} if main else None
 
 
-def appletv(mode="check", seconds="15"):
-    """What the Apple TV app is showing, as one JSON line: `title_page` with its main button's action,
-    or none (no title page: the film or some other screen). `play` waits up to `seconds` for a title
-    page (or for the app to start playing by itself) and presses OK when its action is Play or Resume
-    and nothing on it is sold (OK lands on the main button, and on a page selling a trial or a rental
-    that button is the purchase), then checks the page has gone."""
-    import json
-    end = time.time() + float(seconds)
+def apple_title_page(play, seconds):
+    """The Apple TV app's title page, if it is on screen: its main button's action and whether anything
+    on the page is sold. With `play`, waits up to `seconds` for a title page (or for the app to start
+    playing by itself) and presses OK when the action is Play or Resume and nothing on it is sold (OK
+    lands on the main button, and on a page selling a trial or a rental that button is the purchase),
+    then looks again for the page."""
+    end = time.time() + seconds
     page = apple_page()
     # A link can go straight into playback, with no title page to wait for.
-    while mode == "play" and page is None and time.time() < end and not audio_flowing(APPS["appletv"]):
+    while play and page is None and time.time() < end and not audio_flowing(APPS["appletv"]):
         time.sleep(1)
         page = apple_page()
-    out = {"foreground": foreground(), "title_page": page is not None}
-    if page:
-        out.update(action=page["action"], sells=any(APPLE_SELLS.search(b) for b in page["buttons"]))
-        if mode == "play" and APPLE_PLAYS.search(page["action"]) and not out["sells"]:
-            key("select")
-            time.sleep(5)
-            out.update(pressed=page["action"], title_page=apple_page() is not None)
-    print(json.dumps(out))
+    if page is None:
+        return {"title_page": False}
+    out = {"title_page": True, "button": page["action"], "sells": any(APPLE_SELLS.search(b) for b in page["buttons"])}
+    if play and APPLE_PLAYS.search(page["action"]) and not out["sells"]:
+        key("select")
+        time.sleep(5)
+        out.update(pressed=page["action"], title_page=apple_page() is not None)
+    return out
 
 
 def audio_flowing(pkg):
@@ -517,18 +516,22 @@ def audio_flowing(pkg):
     return False
 
 
-def playing(seconds="0"):
-    """One JSON line: the foreground app and whether it is sending sound, waiting up to `seconds` for it to
-    start (after an open, which takes a few seconds to reach playback)."""
+def check(apple="0", play="0", wait="0", delay="0"):
+    """What is really playing, as one JSON line (data-layer tvHome.ts reads it after every open, and on
+    `now` and `media`): Apple TV's title page if `apple` is 1 (pressing Play on it if `play` is 1), then
+    the foreground app and whether it is sending sound, waiting up to `wait` seconds for that to start,
+    after `delay` seconds (a pause's last sound is still going out as it answers)."""
     import json
-    end = time.time() + float(seconds)
+    time.sleep(float(delay))
+    out = apple_title_page(play == "1", 15.0) if apple == "1" else {}
+    end = time.time() + float(wait)
     while True:
         pkg = foreground()
         flowing = bool(pkg) and audio_flowing(pkg)
         if flowing or time.time() >= end:
             break
         time.sleep(1)
-    print(json.dumps({"foreground": pkg, "playing": flowing}))
+    print(json.dumps({**out, "foreground": pkg, "playing": flowing}))
 
 
 APP = "com.jaredgantt.tvcompanion"
@@ -570,7 +573,7 @@ COMMANDS = {
     "picture": picture_settings,
     "volume": volume, "power": power, "wake": wake, "now": now, "sleep": sleep_timer,
     "open": open_url, "launch": launch, "input": input_, "key": key, "text": text,
-    "screen": screen, "screenshot": screenshot, "profile": profile, "appletv": appletv, "playing": playing, "sidebar": sidebar, "overlay": overlay, "link": link,
+    "screen": screen, "screenshot": screenshot, "profile": profile, "check": check, "sidebar": sidebar, "overlay": overlay, "link": link,
     "shell": lambda *c: print(sh(*c), end=""),
 }
 
