@@ -10,6 +10,9 @@ bigger items are in [IDEAS.md](IDEAS.md); what is already proven is in
   The catalog). Until then the catalog marks nothing as owned and `popular` / `added` need `services`.
 - **Signing in to Netflix and Disney+ on the TV's own apps** (or deciding those are watched on the
   Apple TV box). Their links stop at a sign-in sheet today. Credentials are entered by the owner.
+- **Apple TV+ on the TV's Apple TV app**: signing in to the Apple ID that has it (the app offers only
+  "Accept Free Trial" today), then one Apple TV `open` watched, to verify the Play press
+  (WATCHING.md § Apple TV's title page).
 - **The Apple TV box's pairing PIN**, read off the screen once, so pyatv can control it
   (WATCHING.md § The Apple TV box).
 - **The Pi browser signed in to Netflix (and other services)**, so their watch history can be read

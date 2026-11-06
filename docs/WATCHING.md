@@ -53,7 +53,7 @@ marked "(his)". **Not set yet**: TODO.md § Blocked on the owner.
 |---|---|---|---|
 | YouTube | watch URL | yes | plays at once |
 | Prime Video | catalog `intent://watch.amazon.com/…` | yes | the title page, "Play S1 E1"; when Prime was not already running, its "Who's watching?" profile picker first (below) |
-| Apple TV | catalog `intent://tv.apple.com/…` | **no Apple TV+ on it** (signed in or not, unchecked) | the episode page, offering "Accept Free Trial" |
+| Apple TV | catalog `intent://tv.apple.com/…` | **no Apple TV+ on it** (checked 2026-11-06) | the title page, its button "Accept Free Trial" (below) |
 | Netflix | catalog `intent://www.netflix.com/…` | **no** | Google's "Choose an account to continue to Netflix" sign-in sheet |
 | Disney+ | catalog link | **no** | the same sign-in sheet |
 | Hulu, Max, others | | not tried | |
@@ -72,6 +72,19 @@ then reads the screen again and fails if the picker is still there; a failure, o
 capture was blank (DRM playback captures as solid black), is logged as an error by data-http. OK is
 never pressed on anything but the picker, because on a rental's title page the focused button is the
 purchase.
+
+**Apple TV's title page.** An Apple TV link stops on the title's page, and the app's media session
+cannot tell that page from the film: the page plays a trailer behind its buttons and the session
+reports PLAYING with a position, and it goes on saying PLAYING after that audio stops. Only the screen
+tells them apart. `bin/tv appletv` reads the app's accessibility tree (screenshots of it are blank,
+DRM): the main button's label is the title, genres and rating, then the action, comma-separated. Focus
+is not exposed there. `bedroom_tv` sends the Pi an `appletv` command after every Apple TV `open`, and
+after `now` and `media` whenever the Apple TV app is the session; a title page on screen turns the
+answer into `state: "title page"`, `playing: false`, with the button's action, and an error when the
+page is selling something. After an `open` or `media play` the Pi presses OK when the action is Play or
+Resume and nothing on the page is sold (OK lands on the main button, which on a selling page is the
+purchase), then checks the page has gone. That press is unverified: no account with Apple TV+ has been
+signed in on the TV's app to watch it work.
 
 A sign-in sheet is backed out of with `back`. Signing in is done by the owner: credentials are never
 typed or chosen by Claude.

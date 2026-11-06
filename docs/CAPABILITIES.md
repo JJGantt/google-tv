@@ -24,7 +24,7 @@ to verified without doing it.
 | Sleep / wake | `bin/tv power off` (`KEYCODE_SLEEP`) / `power on` (Wake-on-LAN, adb fallback) | verified from the Mac and the Pi, after minutes in standby; needs Network standby (POWER.md) |
 | Sleep timer | `bin/tv sleep <minutes>`, a systemd timer on the Pi running `power off` (POWER.md) | first set 2026-11-04; firing not yet seen |
 | Inactivity auto-off | `settings put secure attentive_timeout <ms>`, set to 4h (14400000) | set 2026-11-03 and read back from `dumpsys power`; not yet seen firing overnight (POWER.md) |
-| Deep links into streaming apps | `bin/tv open '<intent:…>'`, from the `catalog` tool | verified: Prime Video and Apple TV land on the title; Netflix and Disney+ stop at sign-in (WATCHING.md) |
+| Deep links into streaming apps | `bin/tv open '<intent:…>'`, from the `catalog` tool | verified: Prime Video and Apple TV land on the title; Netflix and Disney+ stop at sign-in (WATCHING.md). Apple TV's Play press after the link: unverified |
 | Screenshot of an HDMI input | `screencap` | fails: returns nothing on an HDMI input |
 | Open a specific YouTube video | `am start -a VIEW -d https://www.youtube.com/watch?v=<id> com.google.android.youtube.tv` | verified twice, the second time through `bin/tv open`: playing, title read back from the media session |
 | Launch an app | companion app `launch` (`getLeanbackLaunchIntentForPackage`), or `monkey -p <pkg> -c LEANBACK_LAUNCHER 1` over adb | verified 2026-10-31: Prime Video through `bedroom_tv launch`. Needs the manifest's `<queries>` block — without it package visibility hides every store app and `launch` answers "not installed" |
