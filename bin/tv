@@ -94,8 +94,15 @@ def discover():
     return found
 
 
+_serial = None
+
+
 def serial():
-    """Connect if needed and return the adb serial for the TV."""
+    """Connect if needed and return the adb serial for the TV, once per run: each check costs two adb
+    round trips, about a second on the Pi."""
+    global _serial
+    if _serial:
+        return _serial
     cached = STATE.read_text().strip() if STATE.exists() else None
     for addr in (cached, *discover()):
         if not addr:
@@ -104,6 +111,7 @@ def serial():
         if run("-s", addr, "get-state", check=False).strip() == "device":
             STATE.parent.mkdir(parents=True, exist_ok=True)
             STATE.write_text(addr)
+            _serial = addr
             return addr
     raise SystemExit("TV unreachable: wireless debugging is off, the TV is unplugged, or it is not on the network")
 
