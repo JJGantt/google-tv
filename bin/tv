@@ -491,6 +491,37 @@ def appletv(mode="check", seconds="15"):
     print(json.dumps(out))
 
 
+def audio_flowing(pkg):
+    """Whether PKG is sending sound out right now: an audio output thread holding one of its tracks wrote
+    within the last second. This is the playing test, because an app's media session only reports what
+    the app claims (Apple TV's says PLAYING over a stopped film). TV mute and volume are applied after
+    this point and a quiet scene is still written, so neither reads as stopped."""
+    pids = set(sh("pidof", pkg).split())
+    if not pids:
+        return False
+    for block in sh("dumpsys", "media.audio_flinger").split("Output thread")[1:]:
+        last = re.search(r"Last write occurred \(msecs\): (\d+)", block)
+        mine = any(len(f) > 3 and f[1] == "yes" and f[2] in pids
+                   for f in (line.split() for line in block.splitlines()))
+        if last and int(last.group(1)) < 1000 and mine:
+            return True
+    return False
+
+
+def playing(seconds="0"):
+    """One JSON line: the foreground app and whether it is sending sound, waiting up to `seconds` for it to
+    start (after an open, which takes a few seconds to reach playback)."""
+    import json
+    end = time.time() + float(seconds)
+    while True:
+        pkg = foreground()
+        flowing = bool(pkg) and audio_flowing(pkg)
+        if flowing or time.time() >= end:
+            break
+        time.sleep(1)
+    print(json.dumps({"foreground": pkg, "playing": flowing}))
+
+
 APP = "com.jaredgantt.tvcompanion"
 # The hub's device token, kept per machine outside the repo and pushed into the app on demand.
 HUB_TOKEN_FILE = CONFIG / "hub-token"
@@ -530,7 +561,7 @@ COMMANDS = {
     "picture": picture_settings,
     "volume": volume, "power": power, "wake": wake, "now": now, "sleep": sleep_timer,
     "open": open_url, "launch": launch, "input": input_, "key": key, "text": text,
-    "screen": screen, "screenshot": screenshot, "profile": profile, "appletv": appletv, "sidebar": sidebar, "overlay": overlay, "link": link,
+    "screen": screen, "screenshot": screenshot, "profile": profile, "appletv": appletv, "playing": playing, "sidebar": sidebar, "overlay": overlay, "link": link,
     "shell": lambda *c: print(sh(*c), end=""),
 }
 
