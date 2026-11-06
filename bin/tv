@@ -447,6 +447,50 @@ def profile(app="prime", seconds="20"):
     print(f"no profile picker ({app} {'never came to the front' if not looks else 'showed no page'} in {seconds}s)")
 
 
+# The Apple TV app's title page, as its accessibility tree reads: the main button's label is the title,
+# its genres and rating, then the action, all comma-separated ("Wolfs, Action, Crime, Rated R, Accept
+# Free Trial"). Trailers are their own buttons ("Wolfs Trailer #2, Play, a minute").
+APPLE_SELLS = re.compile(r"free trial|subscribe|\bbuy\b|\brent\b|get apple tv", re.I)
+APPLE_PLAYS = re.compile(r"^(play|resume|continue|watch)", re.I)
+
+
+def apple_page():
+    """The Apple TV app's title-page buttons if one is on screen, else None. Its media session is no
+    evidence either way: the page's background trailer reports PLAYING, and the session keeps saying
+    PLAYING after the audio stops, so only the screen tells a title page from the film playing."""
+    if foreground() != APPS["appletv"]:
+        return None
+    sh("uiautomator", "dump", "/sdcard/ui.xml")
+    buttons = []
+    for node in re.findall(r"<node [^>]*>", sh("cat", "/sdcard/ui.xml")):
+        if 'class="android.widget.Button"' in node and (m := re.search(r'(?:text|content-desc)="([^"]+)"', node)):
+            buttons.append(m.group(1))
+    main = next((b for b in buttons if b.count(", ") >= 2), None)
+    return {"action": main.rsplit(", ", 1)[1].strip(), "buttons": buttons} if main else None
+
+
+def appletv(mode="check", seconds="15"):
+    """What the Apple TV app is showing, as one JSON line: `title_page` with its main button's action,
+    or none (no title page: the film or some other screen). `play` waits up to `seconds` for a title
+    page and presses OK when its action is Play or Resume and nothing on it is sold (OK lands on the
+    main button, and on a page selling a trial or a rental that button is the purchase), then checks
+    the page has gone."""
+    import json
+    end = time.time() + float(seconds)
+    page = apple_page()
+    while mode == "play" and page is None and time.time() < end:
+        time.sleep(1)
+        page = apple_page()
+    out = {"foreground": foreground(), "title_page": page is not None}
+    if page:
+        out.update(action=page["action"], sells=any(APPLE_SELLS.search(b) for b in page["buttons"]))
+        if mode == "play" and APPLE_PLAYS.search(page["action"]) and not out["sells"]:
+            key("select")
+            time.sleep(5)
+            out.update(pressed=page["action"], title_page=apple_page() is not None)
+    print(json.dumps(out))
+
+
 APP = "com.jaredgantt.tvcompanion"
 # The hub's device token, kept per machine outside the repo and pushed into the app on demand.
 HUB_TOKEN_FILE = CONFIG / "hub-token"
@@ -486,7 +530,7 @@ COMMANDS = {
     "picture": picture_settings,
     "volume": volume, "power": power, "wake": wake, "now": now, "sleep": sleep_timer,
     "open": open_url, "launch": launch, "input": input_, "key": key, "text": text,
-    "screen": screen, "screenshot": screenshot, "profile": profile, "sidebar": sidebar, "overlay": overlay, "link": link,
+    "screen": screen, "screenshot": screenshot, "profile": profile, "appletv": appletv, "sidebar": sidebar, "overlay": overlay, "link": link,
     "shell": lambda *c: print(sh(*c), end=""),
 }
 
