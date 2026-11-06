@@ -34,15 +34,15 @@ import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-/** The picks screen (docs/PICKS.md): titled shelves of thumbnails, one row each, read from the hub's
- *  /api/tv/picks whenever the screen comes up and again on TvLink's `picks_refresh`. Each card opens
+/** The TV Guide (docs/GUIDE.md): titled shelves of thumbnails, one row each, read from the hub's
+ *  /api/tv/guide whenever the screen comes up and again on TvLink's `guide_refresh`. Each card opens
  *  its item: an `intent:` deep link as is, any other URL viewed in the item's package. The corner badge
  *  is the service's own site icon (its logo, mostly on a transparent ground), with a thin white rim
  *  traced around its shape so it reads on any thumbnail. The apps' launcher icons are full square
  *  tiles, too heavy for a badge. */
-public class Picks extends Activity {
+public class Guide extends Activity {
     /** The screen while it is in front, for TvLink's refresh. */
-    static volatile Picks shown;
+    static volatile Guide shown;
     private static final int CARD_W = 400;
     private LinearLayout shelves;
     /** Package to the site whose icon badges its items. A package not here gets no badge. */
@@ -86,12 +86,12 @@ public class Picks extends Activity {
     void reload() {
         new Thread(() -> {
             try {
-                JSONArray list = new JSONObject(get(Config.HUB + "/api/tv/picks")).getJSONArray("shelves");
+                JSONArray list = new JSONObject(get(Config.HUB + "/api/tv/guide")).getJSONArray("shelves");
                 runOnUiThread(() -> draw(list));
             } catch (Exception e) {
-                Log.e(BootReceiver.TAG, "picks: load: " + e);
+                Log.e(BootReceiver.TAG, "guide: load: " + e);
             }
-        }, "picks-load").start();
+        }, "guide-load").start();
     }
 
     private String get(String url) throws Exception {
@@ -177,7 +177,7 @@ public class Picks extends Activity {
             new Thread(() -> {
                 Bitmap bm = badge(site);
                 if (bm != null) runOnUiThread(() -> badge.setImageBitmap(bm));
-            }, "picks-badge").start();
+            }, "guide-badge").start();
         }
         card.addView(thumb);
 
@@ -200,7 +200,7 @@ public class Picks extends Activity {
         if (!image.isEmpty() && !"null".equals(image)) new Thread(() -> {
             Bitmap bm = fetch(image);
             if (bm != null) runOnUiThread(() -> img.setImageBitmap(bm));
-        }, "picks-image").start();
+        }, "guide-image").start();
         return card;
     }
 
@@ -232,7 +232,7 @@ public class Picks extends Activity {
             c.setReadTimeout(15_000);
             try (InputStream in = c.getInputStream()) { return BitmapFactory.decodeStream(in); }
         } catch (Exception e) {
-            Log.e(BootReceiver.TAG, "picks: image " + url + ": " + e);
+            Log.e(BootReceiver.TAG, "guide: image " + url + ": " + e);
             return null;
         } finally {
             if (c != null) c.disconnect();
@@ -248,7 +248,7 @@ public class Picks extends Activity {
             if (i.getPackage() == null && i.getComponent() == null && !pkg.isEmpty() && !"null".equals(pkg)) i.setPackage(pkg);
             startActivity(i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
         } catch (Exception e) {
-            Log.e(BootReceiver.TAG, "picks: open " + it + ": " + e);
+            Log.e(BootReceiver.TAG, "guide: open " + it + ": " + e);
         }
     }
 }

@@ -42,7 +42,7 @@
         </service>
         <service android:name=".SidebarService" android:exported="true" android:permission="android.permission.DUMP"
             android:foregroundServiceType="specialUse" />
-        <activity android:name=".Picks" android:exported="true" android:label="Picks"
+        <activity android:name=".Guide" android:exported="true" android:label="TV Guide"
             android:theme="@android:style/Theme.DeviceDefault.NoActionBar.Fullscreen">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

@@ -65,7 +65,7 @@ APPS = {
     "youtubemusic": "com.google.android.youtube.tvmusic",
     "youtubetv": "com.google.android.youtube.tvunplugged",
     "settings": "com.android.tv.settings",
-    "picks": "com.jaredgantt.tvcompanion",
+    "guide": "com.jaredgantt.tvcompanion",
 }
 
 

@@ -17,7 +17,7 @@ TV is not rooted; neither is possible (locked bootloader) or needed.
 | [docs/VOICE.md](docs/VOICE.md) | how voice reaches the TV: tv_commands, the hub relay, the app's link |
 | [docs/POWER.md](docs/POWER.md) | turning the TV on and off remotely: Network standby, the measured wake methods, the Pi's part |
 | [docs/WATCHING.md](docs/WATCHING.md) | finding something to watch and putting it on: YouTube (public and the signed-in account), the cross-service catalog, deep links, the Apple TV box |
-| [docs/PICKS.md](docs/PICKS.md) | the picks screen: titled shelves of chosen videos and shows, kept in Supabase and edited by the `tv_picks` tool, with history |
+| [docs/GUIDE.md](docs/GUIDE.md) | the TV Guide: titled shelves of chosen videos and shows, kept in Supabase and edited by the `tv_guide` tool, with history |
 | [docs/TODO.md](docs/TODO.md) | every open item: blocked, visible tests still owed, not started, decided against |
 
 ## `bin/tv`
@@ -34,7 +34,7 @@ own `~/.config/google-tv/`, docs/SETUP.md).
     bin/tv wake                   # Wake-on-LAN only
     bin/tv now                    # foreground app + what is playing
     bin/tv open <url> [app]       # e.g. a YouTube watch URL, opened in the YouTube app
-    bin/tv launch <app>           # youtube, netflix, prime, disney, hulu, max, tubi, appletv, picks (docs/PICKS.md), ...
+    bin/tv launch <app>           # youtube, netflix, prime, disney, hulu, max, tubi, appletv, guide (docs/GUIDE.md), ...
     bin/tv input hdmi1..hdmi4
     bin/tv key <KEY>...           # dpad_up, enter, back, home, media_play_pause, ...
     bin/tv text "<string>"        # types into the focused field
