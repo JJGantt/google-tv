@@ -29,7 +29,7 @@ to verified without doing it.
 | Open a specific YouTube video | `am start -a VIEW -d https://www.youtube.com/watch?v=<id> com.google.android.youtube.tv` | verified twice, the second time through `bin/tv open`: playing, title read back from the media session |
 | Launch an app | companion app `launch` (`getLeanbackLaunchIntentForPackage`), or `monkey -p <pkg> -c LEANBACK_LAUNCHER 1` over adb | verified 2026-10-31: Prime Video through `bedroom_tv launch`. Needs the manifest's `<queries>` block — without it package visibility hides every store app and `launch` answers "not installed" |
 | Switch HDMI input | `content://android.media.tv/passthrough/com.tcl.tvinput%2F.TvPassThroughService%2FHW1<n>` | unverified. HW15–HW18 exist; HW15 = HDMI 1 is an assumption |
-| What is playing | `dumpsys media_session` | verified: package, PLAYING, title |
+| What is playing | `dumpsys media_session` for the app's claim; `bin/tv check` for sound actually going out (VOICE.md) | verified 2026-11-06: Apple TV's session said PLAYING over a stopped film, and the sound check told it apart |
 | Foreground app | `dumpsys window` → `mCurrentFocus` | verified |
 | Remote buttons | `input keyevent` | verified (D-pad, Enter, Back, Settings all drove the menus) |
 | Read the screen as text | `uiautomator dump` | verified for Settings and the home screen. The YouTube player exposes no text |

@@ -40,11 +40,30 @@ home screen. The lock is released with `ON_AFTER_RELEASE`, which restarts the id
 
 **Choosing what to put on** is the `youtube` and `catalog` tools: WATCHING.md.
 
-`media` drives whatever is playing through its media session, the same grant `now` uses: `play`,
-`pause`, `toggle`, `stop`, `next`, `previous`, and `forward` / `back` / `seek` by `seconds`. Skips are a
-`seekTo` from the live position (the session's last reported position plus the time elapsed since),
-because `fastForward` and `rewind` mean a different jump in every app. It answers with `now`. With
-nothing playing or paused it answers `nothing is playing`.
+`media` is `play` and `pause` on whatever is playing, through its media session, the same grant `now`
+uses. It answers with `now`. With nothing playing or paused it answers `nothing is playing`. There is
+no skip or seek: a session's position is its app's last report plus the time since, so an app that
+says it is playing when it is not turns a seek into a jump to nowhere. Anything beyond play and pause
+is a session's job.
+
+**Whether something is really playing** is not the app's answer. A media session reports only what
+its app claims, and Apple TV's says PLAYING over its title page's trailer and over a stopped film. So
+data-layer `bedroomTv.ts` follows `now` and `media` with a `check` row, which the Pi answers
+(`bin/tv check`): whether the foreground app is sending sound (an audio output thread holding its
+track wrote in the last second; mute and quiet scenes still write), and for Apple TV whether its title
+page is on screen. `judge()` merges the two: `playing` is the sound, and a session that says playing
+with no sound becomes `not playing` with its position dropped.
+
+**Every `open` is followed up on the Pi**, whoever wrote the row: the `bedroom_tv` tool or the phone's
+TV Guide (the hub's `/api/tv/guide/open`). The Pi sees every insert, so this is the one place it is
+done (tvHome.ts `followUp`): Prime's profile picker, Apple TV's Play button (WATCHING.md), then up to
+15 s for sound. It writes the row's `outcome` and `checked_at` (data-layer 00176), separate from
+`result`, the app's own answer. The tool waits for both and answers `playing: true`, or `ok: false`
+with what is on screen. An open that is not playing afterwards is logged as an error on the Pi.
+
+**A replayed command is not done twice.** The hub replays unanswered rows when the stream reconnects;
+the app remembers its last 50 commands and answers a repeat with what it did the first time. Answers
+retry for about 15 s before the app gives up and logs it.
 
 `input` (`hdmi` 1-4) opens TCL's passthrough input the way `bin/tv input` does. The PlayStation 5 is
 HDMI 2 (CEC reports it on port 2). It wakes the TV first, like `open`.
@@ -54,8 +73,8 @@ HDMI 2 (CEC reports it on port 2). It wakes the TV first, like `open`.
 An app cannot turn the TV off or on (`goToSleep` is a system permission), so `power` is the Pi's
 (POWER.md). An app cannot inject key presses into another app either, so `key` (back, home, the
 arrows, select) is the Pi's too: data-layer `tvHome.ts` runs `bin/tv key` over adb and answers the
-row, and the hub leaves `power`, `key` and `sleep` rows alone. The Pi also presses OK on Prime Video's "Who's
+row, and the hub leaves `power`, `key`, `sleep` and `check` rows alone. The Pi also presses OK on Prime Video's "Who's
 watching?" picker after an `open` or `launch` into Prime (WATCHING.md § Prime's profile picker). While the TV is off the app is not running:
 `open`, `launch` and `input` wait for the Pi to wake it, `key` and setting a `sleep` answer `the TV is off`, and anything
-else answers `the TV is off (its app is not connected)`. Screenshots stay with `bin/tv` over adb, so
+else answers `the TV is off, or its app is not connected to the hub` (the hub cannot tell which). Screenshots stay with `bin/tv` over adb, so
 the orchestrator hands them to a session, which has the `tv` skill.
