@@ -5,7 +5,10 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
-import android.graphics.drawable.Drawable;
+import android.graphics.Canvas;
+import android.graphics.Paint;
+import android.graphics.PorterDuff;
+import android.graphics.PorterDuffColorFilter;
 import android.graphics.drawable.GradientDrawable;
 import android.net.Uri;
 import android.os.Bundle;
@@ -28,19 +31,32 @@ import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /** The picks screen (docs/PICKS.md): titled shelves of thumbnails, one row each, read from the hub's
  *  /api/tv/picks whenever the screen comes up and again on TvLink's `picks_refresh`. Each card opens
  *  its item: an `intent:` deep link as is, any other URL viewed in the item's package. The corner badge
- *  is that package's own app icon, so the screen needs no artwork of its own. */
+ *  is the service's own site icon (its logo, mostly on a transparent ground), with a thin white rim
+ *  traced around its shape so it reads on any thumbnail. The apps' launcher icons are full square
+ *  tiles, too heavy for a badge. */
 public class Picks extends Activity {
     /** The screen while it is in front, for TvLink's refresh. */
     static volatile Picks shown;
     private static final int CARD_W = 400;
     private LinearLayout shelves;
-    private final Map<String, Drawable> icons = new HashMap<>();
+    /** Package to the site whose icon badges its items. A package not here gets no badge. */
+    private static final Map<String, String> SITES = Map.of(
+            "com.google.android.youtube.tv", "youtube.com",
+            "com.netflix.ninja", "netflix.com",
+            "com.amazon.amazonvideo.livingroom", "primevideo.com",
+            "com.apple.atve.androidtv.appletv", "tv.apple.com",
+            "com.disney.disneyplus", "disneyplus.com",
+            "com.hulu.livingroomplus", "hulu.com",
+            "com.wbd.stream", "max.com",
+            "com.tubitv", "tubitv.com");
+    private static final Map<String, Bitmap> BADGES = new ConcurrentHashMap<>();
+    private static final int BADGE = 40;
 
     @Override
     protected void onCreate(Bundle b) {
@@ -151,14 +167,17 @@ public class Picks extends Activity {
         img.setScaleType(ImageView.ScaleType.CENTER_CROP);
         img.setBackgroundColor(0xFF2A2A2A);
         thumb.addView(img, new FrameLayout.LayoutParams(CARD_W, CARD_W * 9 / 16));
-        Drawable icon = icon(it.optString("package"));
-        if (icon != null) {
+        String site = SITES.get(it.optString("package"));
+        if (site != null) {
             ImageView badge = new ImageView(this);
-            badge.setImageDrawable(icon);
             badge.setScaleType(ImageView.ScaleType.FIT_CENTER);
-            FrameLayout.LayoutParams bp = new FrameLayout.LayoutParams(56, 56, Gravity.TOP | Gravity.END);
-            bp.setMargins(0, 10, 10, 0);
+            FrameLayout.LayoutParams bp = new FrameLayout.LayoutParams(BADGE, BADGE, Gravity.TOP | Gravity.END);
+            bp.setMargins(0, 12, 12, 0);
             thumb.addView(badge, bp);
+            new Thread(() -> {
+                Bitmap bm = badge(site);
+                if (bm != null) runOnUiThread(() -> badge.setImageBitmap(bm));
+            }, "picks-badge").start();
         }
         card.addView(thumb);
 
@@ -185,17 +204,24 @@ public class Picks extends Activity {
         return card;
     }
 
-    /** The app's own launcher icon; null when the package is unknown or not installed. */
-    private Drawable icon(String pkg) {
-        if (pkg.isEmpty() || "null".equals(pkg)) return null;
-        if (!icons.containsKey(pkg)) {
-            Drawable d = null;
-            try { d = getPackageManager().getApplicationIcon(pkg); } catch (Exception e) {
-                Log.e(BootReceiver.TAG, "picks: no icon for " + pkg + ": " + e);
-            }
-            icons.put(pkg, d);
+    /** The site's icon with a white rim following its outline, fetched once per run of the app. */
+    private static Bitmap badge(String site) {
+        Bitmap b = BADGES.get(site);
+        if (b != null) return b;
+        Bitmap src = fetch("https://www.google.com/s2/favicons?domain=" + site + "&sz=128");
+        if (src == null) return null;
+        int r = Math.max(2, src.getWidth() / 20);
+        b = Bitmap.createBitmap(src.getWidth() + 2 * r, src.getHeight() + 2 * r, Bitmap.Config.ARGB_8888);
+        Canvas c = new Canvas(b);
+        Paint white = new Paint(Paint.FILTER_BITMAP_FLAG);
+        white.setColorFilter(new PorterDuffColorFilter(Color.WHITE, PorterDuff.Mode.SRC_IN));
+        for (int a = 0; a < 360; a += 15) {
+            double t = Math.toRadians(a);
+            c.drawBitmap(src, (float) (r + r * Math.cos(t)), (float) (r + r * Math.sin(t)), white);
         }
-        return icons.get(pkg);
+        c.drawBitmap(src, r, r, new Paint(Paint.FILTER_BITMAP_FLAG));
+        BADGES.put(site, b);
+        return b;
     }
 
     private static Bitmap fetch(String url) {

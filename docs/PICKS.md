@@ -1,29 +1,43 @@
 # Picks
 
-A screen in the companion app (`Picks` activity, "Picks" in the TV's app list) showing a grid of
-thumbnails and titles chosen by a session. Selecting one opens it in the app it belongs to.
+A screen in the companion app (the `Picks` activity, "Picks" in the TV's app list): titled shelves of
+thumbnails, one row each, like a streaming app's home screen. Selecting a card opens it in its app.
+Open it with `bin/tv launch picks`, or the data MCP's `tv_picks` `show` (by voice too).
 
-    bin/tv picks <file.json>   # replace the list, then open the screen
-    bin/tv picks               # open the screen
-    bin/tv launch picks        # the same, through the launcher entry
+## Where the shelves live
 
-The file is a JSON array; `picks/sample.json` is the shape:
+Supabase, so the voice orchestrator on Fly can change them (data-layer 00171, `tvPicks.ts`):
 
-    [{"title": "...", "image": "<thumbnail URL>", "url": "<what to open>", "package": "<app, optional>"}]
+- `tv_shelves`: `id` (`sh_…`), `title`, `position`.
+- `tv_shelf_items`: `id` (`pk_…`), `shelf_id`, `position`, `title`, `url`, `package`, `image`.
+- `tv_picks_history` (00172): the whole screen as it stood after every change, for `history`,
+  `history_view` and `restore`. Never pruned.
 
-- **YouTube**: `url` a watch URL, `package` `com.google.android.youtube.tv`, `image`
-  `https://i.ytimg.com/vi/<id>/hqdefault.jpg`. Ids come from the `youtube` tool (WATCHING.md).
-- **Netflix, Prime and the rest**: `url` the catalog's `open:` deep link as is (it names its own
-  package), `package` omitted. The catalog tool prints no images; JustWatch's GraphQL API
-  (`node(id:"ts…") { ... on MovieOrShow { content(country:US, language:"en") { backdrops { backdropUrl } } } }`)
-  gives `/backdrop/<n>/{profile}/<slug>.{format}`, served as
-  `https://images.justwatch.com/backdrop/<n>/s640/<slug>.jpg`.
+Shelves are not hard-coded: any number, each with its own title. The data MCP's `tv_picks` tool is
+the only writer. Its description is the orchestrator's whole instruction set: change only what is
+asked for, `view` to see everything, add / remove / replace / move items, create / rename / move /
+delete shelves, and the history ops. Item `title` is the plain title; the service is shown by the
+badge, never in the title.
+
+What an item opens is worked out from its URL (`resolveItem`): an `intent:` deep link from the
+`catalog` tool names its own package; a YouTube watch URL opens in the YouTube app, and its thumbnail
+is derived (`i.ytimg.com/vi/<id>/hqdefault.jpg`). A catalog title's thumbnail is the `Image:` line
+`catalog title` prints (a JustWatch backdrop).
+
+## How the screen gets them
+
+The screen reads the hub's `GET /api/tv/picks` (status-hub `server/routes/tv.js`) with the hub token
+each time it comes to the front. After every write the tool inserts a `picks_refresh` tv_command,
+which TvLink passes to the screen if it is in front (`Picks.shown`), so an open screen redraws within
+a second or two and keeps focus on the same card. `picks_refresh` never brings the screen up.
+
+Thumbnails and badges load straight from their URLs with no disk cache. The badge is the service's
+site icon from Google's favicon service (`SITES` in `Picks.java` maps package to site), with a white
+rim traced around its shape. A package missing from `SITES` gets no badge. The apps' own launcher
+icons are full square tiles and too heavy for a badge.
+
+## Limits
 
 Netflix is not signed in on the TV (WATCHING.md), so a Netflix pick stops at its sign-in screen.
 Opening a Prime pick from this screen does not get the Pi's press past "Who's watching?", which only
-follows a voice `open`.
-
-`bin/tv picks <file>` goes over adb: `PicksReceiver` takes the array base64-encoded (no shell
-quoting), refuses anything that is not a JSON array, and stores it as `picks.json` in the app's files
-dir. The screen reads that file each time it comes up and loads thumbnails straight from their URLs,
-with no cache. Voice has no way to set the list yet.
+follows a voice `open` or `launch`.

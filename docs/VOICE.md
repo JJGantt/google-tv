@@ -25,7 +25,7 @@ nothing here talks to the TV directly; Supabase and the hub carry it:
 
 `power` (done by the Pi, not the app: POWER.md), `brightness`, `contrast`, `night`, `volume`,
 `open` (a YouTube URL in the YouTube app, or a catalog `intent:` deep link: WATCHING.md),
-`launch`, `sidebar`, `overlay`, `now`, `media`, `input`, `key`, `sleep` (the Pi's: POWER.md § Sleep timer). Verified end to end on 2026-10-30 for `brightness` (read) and
+`launch`, `sidebar`, `overlay`, `now`, `media`, `input`, `key`, `sleep` (the Pi's: POWER.md § Sleep timer), and `picks_refresh` (sent by the `tv_picks` tool after a write: an open picks screen redraws, PICKS.md). Verified end to end on 2026-10-30 for `brightness` (read) and
 `now` (app, title, position); the rest run the same code paths `bin/tv` proved, from inside the app.
 
 `now` reads media sessions, which Android allows to an enabled notification listener:
