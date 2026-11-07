@@ -56,10 +56,10 @@ with no sound becomes `not playing` with its position dropped.
 
 **Every `open` is followed up on the Pi**, whoever wrote the row: the `bedroom_tv` tool or the phone's
 TV Guide (the hub's `/api/tv/guide/open`). The Pi sees every insert, so this is the one place it is
-done (tvHome.ts `followUp`): Prime's profile picker, Apple TV's Play button (WATCHING.md), then up to
+done (tvHome.ts `followUp`): the app staying in front (`bin/tv front`, WATCHING.md), Prime's profile picker, Apple TV's Play button (WATCHING.md), then up to
 15 s for sound. It writes the row's `outcome` and `checked_at` (data-layer 00176), separate from
 `result`, the app's own answer. The tool waits for both and answers `playing: true`, or `ok: false`
-with what is on screen. An open that is not playing afterwards is logged as an error on the Pi.
+with what is on screen; another app in front of the one opened is `ok: false` even while it plays. An open that is not playing afterwards is logged as an error on the Pi.
 
 **A replayed command is not done twice.** The hub replays unanswered rows when the stream reconnects;
 the app remembers its last 50 commands and answers a repeat with what it did the first time. Answers

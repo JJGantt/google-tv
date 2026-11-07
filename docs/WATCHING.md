@@ -66,12 +66,25 @@ on into the link; with the link's `time=0` removed, a movie resumes where it was
 The Pi presses it: every `open` or `launch` that lands in Prime, from any caller, runs `bin/tv profile
 prime` once the TV is awake (data-layer `tvHome.ts`), and the result goes in the open's `outcome`. The picker has no accessibility tree (`bin/tv screen` is empty in
 Prime) and logs nothing, so `profile` reads the screen: a screenshot through `tesseract` (installed on
-the Pi, `tesseract-ocr`; about 35 MB and a quarter of a second a look), up to 20 s, pressing OK only
-when the text says "Who's watching?", and stopping early once Prime shows a page of other text. It
+the Pi, `tesseract-ocr`; about 35 MB and 0.6 s a look at full size, which it needs: at half size it
+reads nothing off either the picker or a title page), up to 20 s, pressing OK only when the text says
+"Who's watching?" or, for the picker's other layout with no heading, when every word on screen is a
+profile name (`PRIME_PROFILES` in bin/tv, plus "New"), and stopping early once Prime shows a page of
+other text. A profile added to the account goes in `PRIME_PROFILES`, or that layout is never passed. It
 then reads the screen again and fails if the picker is still there; a failure, or a run where every
 capture was blank (DRM playback captures as solid black), is logged as an error by data-http. OK is
 never pressed on anything but the picker, because on a rental's title page the focused button is the
 purchase.
+
+**A Cast session takes the screen back.** While a video cast from a phone is playing in YouTube,
+covering YouTube makes the Cast receiver (`com.google.android.apps.mediashell`) relaunch it about a
+second later, so an open lands in its app and then ends on the cast video. The app's open returns
+without error either way. So every `open` whose app is known (its `app`, or the `package=` in an
+`intent:` link) starts its follow-up with `bin/tv front`: 4 s on, if another app is in front, it stops
+that app's playback (`cmd media_session dispatch stop`) and opens the link again over adb, then reads
+the foreground again. An open that still ends with another app in front answers `ok: false` naming
+both, whatever sound is coming out. Stopping the cast is the expected way past the relaunch; it has not
+yet been watched working on a live cast session.
 
 **Apple TV's title page.** An Apple TV link stops on the title's page. The page plays a trailer behind
 its buttons, and the app's media session reports that as PLAYING with a position but no length, and

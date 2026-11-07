@@ -345,12 +345,38 @@ def now():
             print(f"media: {pkg} {st} {m.group(1)}")
 
 
-def open_url(url, app=None):
+def _start(url, app=None):
     # An intent: URI (the catalog's Android TV deep links) is a whole intent; am takes it as is.
     cmd = ["am", "start", "-W", f"'{url}'"] if url.startswith("intent:") else ["am", "start", "-W", "-a", "android.intent.action.VIEW", "-d", url]
     if app:
         cmd.append(APPS.get(app, app))
-    print(sh(*cmd).strip().splitlines()[-1])
+    return sh(*cmd).strip().splitlines()[-1]
+
+
+def open_url(url, app=None):
+    print(_start(url, app))
+
+
+def front(app, url, seconds="4"):
+    """After an open of URL into APP: whether APP is in front `seconds` later, as one JSON line. A Cast
+    session (YouTube cast from a phone) puts its app back in front about a second after another app
+    covers it, so an open that started fine can still end on the cast video. When something else is in
+    front, its playback is stopped (the media-button session, which is the app holding the screen) and
+    the URL opened again from here, then the foreground read once more."""
+    import json
+    pkg = APPS.get(app, app)
+    time.sleep(float(seconds))
+    fg = foreground()
+    out = {"target": pkg}
+    if fg and fg != pkg:
+        out["displaced_by"] = fg
+        sh("cmd", "media_session", "dispatch", "stop")
+        time.sleep(1)
+        _start(url)
+        time.sleep(float(seconds))
+        fg = foreground()
+        out["reopened"] = True
+    print(json.dumps({**out, "foreground": fg, "front": fg == pkg}))
 
 
 def launch(app):
@@ -398,8 +424,20 @@ def screenshot(path="tv.png"):
     print(path)
 
 
-# "Who's watching?" as tesseract reads it off a downscaled screenshot (the apostrophe comes and goes).
+# "Who's watching?" as tesseract reads it (the apostrophe comes and goes).
 PICKER = re.compile(r"who.{0,2}s\s+watching", re.I)
+# Prime's picker can also show no heading at all: only the profile names, beside an "add" tile whose
+# grey "New" tesseract usually misses. Such a screen counts as the picker only when every word on it is
+# one of these, because OK on anything else can be a purchase (a rental's title page focuses "Rent").
+PRIME_PROFILES = {"jared"}
+PICKER_WORDS = PRIME_PROFILES | {"new"}
+
+
+def is_picker(txt):
+    if PICKER.search(txt):
+        return True
+    words = re.findall(r"\S+", txt.lower())
+    return bool(words) and set(words) <= PICKER_WORDS and bool(set(words) & PRIME_PROFILES)
 
 
 def foreground():
@@ -413,8 +451,8 @@ def screen_text():
     from PIL import Image
     import io
     png = subprocess.run(["adb", "-s", serial(), "exec-out", "screencap", "-p"], capture_output=True, timeout=30).stdout
+    # Full size: at half size tesseract reads nothing at all off Prime's picker or its title page.
     im = Image.open(io.BytesIO(png)).convert("L")
-    im = im.resize((960, im.height * 960 // im.width))
     if im.getextrema()[1] < 16:
         return "", True
     buf = io.BytesIO()
@@ -439,10 +477,10 @@ def profile(app="prime", seconds="20"):
         txt, black = screen_text()
         looks += 1
         blank += black
-        if PICKER.search(txt):
+        if is_picker(txt):
             key("select")
             time.sleep(3)
-            if PICKER.search(screen_text()[0]):
+            if is_picker(screen_text()[0]):
                 raise SystemExit("the profile picker is still showing after OK")
             print("picked the profile")
             return
@@ -572,7 +610,7 @@ COMMANDS = {
     "brightness": brightness, "contrast": contrast, "dynamic-contrast": dynamic_contrast, "night": night,
     "picture": picture_settings,
     "volume": volume, "power": power, "wake": wake, "now": now, "sleep": sleep_timer,
-    "open": open_url, "launch": launch, "input": input_, "key": key, "text": text,
+    "open": open_url, "front": front, "launch": launch, "input": input_, "key": key, "text": text,
     "screen": screen, "screenshot": screenshot, "profile": profile, "check": check, "sidebar": sidebar, "overlay": overlay, "link": link,
     "shell": lambda *c: print(sh(*c), end=""),
 }
