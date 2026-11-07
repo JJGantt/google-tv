@@ -71,8 +71,30 @@ Power & Energy > Energy saver "turn off" choice (Never / 4 / 6 / 8 hours, read f
 `sleep_timeout` (about 12h here) is NOT this: it only counts while nothing holds a wake lock, and a
 playing video holds one, so it never fires during playback. `-1` in `attentive_timeout` means never.
 
-Not yet verified: that it fires overnight, and whether adb-driven actions (`open` from voice) count
-as input and restart the 4 hours.
+It fires overnight: on 2026-11-07 at 03:51 ET, about four hours after a video ended into the
+screensaver, the broadcast history shows `com.tcl.PowerOffTimeCount` with
+`Reason=attentive_timeout, is4HoursSleep=true`, then `com.tcl.system.poweroff`. Not yet verified:
+whether adb-driven actions (`open` from voice) count as input and restart the 4 hours.
+
+### Auto Store Mode must stay off
+
+TCL counts every one of those 4-hour auto-offs. Its SystemUI (`StandbyShopController`) adds each
+`is4HoursSleep` power-off to a counter, and after `tcl_sys_autoshop_auto_standby_counts` (3) of them
+the system server sends `com.tcl.settings.action.SWITCH_TO_SHOP` at the next power-on. The Settings
+app's `AutoShopService` then shows a 30-second prompt, and when nobody answers it the TV goes into
+**Store Mode**: retail picture, the e-sticker demo overlay (`com.tcl.esticker`), a 4-minute store
+sleep timer. The heuristic reads "on for hours with no remote input, several times" as a shop
+display, which is exactly what falling asleep with this TV looks like.
+
+The switch that stops it is Settings > System > Advanced Settings > **Auto Store Mode** off (system
+`tcl_app_settings_autoshopmode_enabled` 0). It was turned off on 2026-11-07, after it had already
+put the TV in Store Mode.
+
+To leave Store Mode, use the menu: Advanced Settings > **Usage Mode** > Home Mode. Do not write
+the settings directly. The menu's `setLocation` also sets `persist.sys.tcl.shopmode_state`,
+`persist.sys.tcl.autostandby`, `RetailModeEnable` and the screensaver, and the shell cannot set the
+`persist.sys` properties. To read the current mode, `settings get system tcl_sys_tmms_location_mode`
+answers `home` or `shop_with_demo`.
 
 ## Sleep timer
 
