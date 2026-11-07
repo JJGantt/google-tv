@@ -20,6 +20,9 @@ nothing here talks to the TV directly; Supabase and the hub carry it:
 - **`TvLink`** (the companion app) holds the stream open, reconnecting with backoff from 1 s doubling
   to a minute (cut short when the screen comes on), and authenticates with the hub's device token (the one `bin/tv sidebar on` pushes).
   Started at boot by `BootReceiver`, and by `bin/tv link`.
+  A hub deploy closes the stream (`link: java.io.EOFException` in logcat, then `link: connected`
+  about 13 s later), and commands in that gap answer `the TV is off, or its app is not connected`
+  while the TV is on; `bin/tv shell dumpsys power | grep mWakefulness` tells the two apart.
 
 ## What it can do
 
