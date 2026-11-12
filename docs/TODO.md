@@ -58,7 +58,7 @@ bigger items are in [IDEAS.md](IDEAS.md); what is already proven is in
 - **Hulu, Max and other deep links** on the TV, untested.
 - **Search history and comments** on YouTube: not built; nothing has asked for them yet.
 - **Accessibility service** in the companion app, for acting inside other apps without adb.
-- **Screensaver / hub view** on this TV (DreamService or a full-screen page).
+- **Screensaver** on this TV (DreamService showing the wall; the full-screen wall itself is `Hub`, CAPABILITIES.md).
 - **The rest of the picture menu** through `tcl_tv_display`: picture mode, colour, HDR,
   blue-light level. Codes are in TCL-DISPLAY-SERVICE.md; brightness, contrast and dynamic
   contrast are wired (`bin/tv night` sets all three). Contrast can go below 60 if 60 is still too bright at night.
