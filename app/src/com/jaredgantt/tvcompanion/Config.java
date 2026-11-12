@@ -16,6 +16,9 @@ final class Config {
      *  answers that page load with a cookie, which signs in the page's own requests. */
     static final String SIDEBAR = HUB + "/tv-sidebar";
 
+    /** The wall (Hub): the same page the Pi's kiosk shows. */
+    static final String WALL = HUB + "/tv";
+
     static String token(Context c) {
         return prefs(c).getString("hub_token", null);
     }

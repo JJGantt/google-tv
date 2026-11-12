@@ -65,7 +65,8 @@ APPS = {
     "youtubemusic": "com.google.android.youtube.tvmusic",
     "youtubetv": "com.google.android.youtube.tvunplugged",
     "settings": "com.android.tv.settings",
-    "guide": "com.jaredgantt.tvcompanion",
+    "guide": "com.jaredgantt.tvcompanion/.Guide",
+    "hub": "com.jaredgantt.tvcompanion/.Hub",
 }
 
 
@@ -380,7 +381,11 @@ def front(app, url, seconds="4"):
 
 
 def launch(app):
-    print(sh("monkey", "-p", APPS.get(app, app), "-c", "android.intent.category.LEANBACK_LAUNCHER", "1").strip().splitlines()[-1])
+    target = APPS.get(app, app)
+    if "/" in target:   # one activity of an app with several launcher entries (the companion app)
+        print(sh("am", "start", "-n", target).strip().splitlines()[-1])
+        return
+    print(sh("monkey", "-p", target, "-c", "android.intent.category.LEANBACK_LAUNCHER", "1").strip().splitlines()[-1])
 
 
 def input_(name):

@@ -87,10 +87,32 @@ holds and an ordinary app does not, so nothing else on the TV can push a token o
 Voice control rides the app too (`TvLink`, docs/VOICE.md): commands reach the TV with no Pi in the
 path, so they work when the voice worker is on Fly.
 
+### Hub wall (`bin/tv launch hub`)
+
+`Hub`, the app's second launcher entry ("Hub" on the home screen's apps row): the hub's `/tv`, the
+same wall the Pi's kiosk shows, full screen. It follows `set_wall` like the kiosk does, since the
+page moves itself (status-hub `wallmode.js`). Verified 2026-11-12: the home wall rendered complete and
+live.
+
+- **Scale.** The wall is laid out for a 1920x1080 CSS canvas, and a WebView CSS pixel is a dp. This
+  TV runs 1920x1080 at density 2, so a full-screen WebView is 960 CSS pixels wide and the wall falls
+  into its phone scaling. The WebView is therefore laid out at 1920x1080 dp and scaled down to fit.
+- **Sign-in** is the sidebar's: the device token in `X-Hub-Token` on the first load, traded by the hub
+  for its device cookie. It needs the token pushed (`bin/tv sidebar on` or `bin/tv link` does it).
+- **Staying up.** It keeps the screen on while in front (no screensaver over it). A failed load
+  retries from 5 s doubling to 5 min; a dead renderer is replaced. Both log as errors under
+  `TvCompanion`; nothing reports them off the TV.
+- **Time zone.** The wall draws in the TV's local time. The TV's automatic time zone leaves it on GMT,
+  so it is set by hand to America/New_York (`settings put global auto_time_zone 0;
+  cmd alarm set-timezone America/New_York`); back on GMT, every time on the wall is five hours ahead.
+- **Launching it** goes by component (`am start -n com.jaredgantt.tvcompanion/.Hub`). Launching by
+  package alone (`TvLink` `launch`, the voice tool's `guide`) takes the first launcher activity, which
+  is the Guide because it comes first in the manifest; keep it there.
+
 Not built yet:
 - **Accessibility service** (enabled once in settings, or from adb via
   `enabled_accessibility_services`) can read and act inside other apps' UIs.
-- A **screensaver** (DreamService) or a full-screen hub view.
+- A **screensaver** (DreamService).
 
 ## Limits
 

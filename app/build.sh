@@ -1,6 +1,8 @@
 #!/bin/bash
 # Builds and signs the companion APK with the bare SDK tools (no Gradle).
 # Output: app/build/tvcompanion.apk
+# d8 34.0.0 crashes (NullPointerException, "Compilation failed with an internal error") on any
+# anonymous or inner (non-static) class compiled by this javac; use a static nested class or a lambda.
 set -euo pipefail
 cd "$(dirname "$0")"
 SDK=${ANDROID_HOME:-$HOME/Library/Android/sdk}
