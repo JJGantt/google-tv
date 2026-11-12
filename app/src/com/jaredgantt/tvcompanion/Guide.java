@@ -133,6 +133,7 @@ public class Guide extends Activity {
             hs.setClipToPadding(false);
             LinearLayout row = new LinearLayout(this);
             row.setPadding(48, 8, 48, 8);
+            row.setBaselineAligned(false);
             hs.addView(row);
             for (int i = 0; i < items.length(); i++) {
                 JSONObject it = items.optJSONObject(i);
@@ -213,6 +214,19 @@ public class Guide extends Activity {
         title.setEllipsize(TextUtils.TruncateAt.END);
         title.setPadding(4, 12, 4, 0);
         card.addView(title);
+
+        String desc = it.optString("description");
+        if (!desc.isEmpty() && !"null".equals(desc)) {
+            // The item's description (tvGuide.ts `describe`), in full: no line limit, so the card and
+            // with it the row grow as tall as the longest one on the shelf.
+            TextView d = new TextView(this);
+            d.setText(desc);
+            d.setTextColor(0xFFB8C0CA);
+            d.setTextSize(13);
+            d.setLineSpacing(0, 1.15f);
+            d.setPadding(4, 6, 4, 0);
+            card.addView(d);
+        }
 
         card.setOnFocusChangeListener((v, focused) -> {
             bg.setColor(focused ? 0xFF3A3A3A : Color.TRANSPARENT);

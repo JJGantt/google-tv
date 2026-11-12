@@ -10,7 +10,7 @@ Supabase, so the voice orchestrator on Fly can change them (data-layer 00171, `t
 
 - `tv_shelves`: `id` (`sh_…`), `title`, `position`.
 - `tv_shelf_items`: `id` (`pk_…`), `shelf_id`, `position`, `title`, `url`, `package`, `image`, `note`
-  (00175).
+  (00175), `description` (00180).
 - `tv_guide_history` (00172, renamed in 00174): the whole screen as it stood after every change, for `history`,
   `history_view` and `restore`. Never pruned.
 
@@ -24,6 +24,12 @@ An item's `note` is a short annotation (a score, a runtime, a tag), set for any 
 `annotate` call or on items in `add` / `replace`. The screen draws it as cyan text on an opaque black pill at the
 bottom left of the thumbnail, opposite the badge. Any length is stored; a long note wraps upward to four lines, which
 reach the badge, and a longer one ends in an ellipsis. No note draws nothing.
+
+An item's `description` is a short plot summary, set on items in `add` / `replace` or for any number of
+items in one `describe` call. The tool's instructions have the orchestrator write one for every item it adds
+(a short paragraph condensed from the catalog or YouTube summary), while a note is only ever added on request.
+The screen draws it in grey under the title with no line limit: each card is as tall as its text, and a row
+is as tall as its tallest card, with cards aligned to the top.
 
 What an item opens is worked out from its URL (`resolveItem`): an `intent:` deep link from the
 `catalog` tool names its own package; a YouTube watch URL opens in the YouTube app, and its thumbnail
