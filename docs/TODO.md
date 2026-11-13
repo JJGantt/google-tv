@@ -43,6 +43,17 @@ bigger items are in [IDEAS.md](IDEAS.md); what is already proven is in
 - **Voice control, first spoken test** (VOICE.md): only `brightness` (read) and `now` were run end to
   end, by writing rows directly. Say a few commands to the voice assistant; check `volume` set goes
   through the app's AudioManager stepping the way `bin/tv volume` does through keys.
+- **TV Guide: open a title's details page, not playback, and show the release year** (asked for, then put
+  on hold). Measured on the TV: a Prime `watch.amazon.com/detail?asin=<ASIN>&territory=US` link lands
+  on the title page with Prime already running, while the catalog's `watch?asin=…&time=0` link
+  restarts Prime into the profile picker and plays. Apple TV movie links already stop on the title
+  page; it is the Pi's follow-up to the phone pane's `/api/tv/guide/open` (tvHome.ts `inspect` with
+  `play: true`) that presses Play, and a guide open would need to skip it. Unverified because those
+  apps are signed out: Netflix `/watch/<id>` → `/title/<id>` (screenshots are blank in Netflix),
+  Disney+ `/play/<id>` → `/browse/entity-<id>`. `tv.apple.com/us/show/<id>` with no slug did not
+  open Apple TV. Hulu's catalog link is a `PLAY_CONTENT` intent and Max's a `/video/watch/` URL, with
+  no details form derivable from either. The year is in catalog `title`'s first line but is not stored
+  on `tv_shelf_items`.
 - **Voice: inputs.** Power is done (POWER.md); switching inputs can ride the same Pi-side path
   (`tvHome.ts` running `bin/tv input`).
 
