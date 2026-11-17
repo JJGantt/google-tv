@@ -47,6 +47,7 @@ Play Store. `app/build.sh` builds it with the bare SDK tools (no Gradle), then:
     adb install -r app/build/tvcompanion.apk
     adb shell pm grant com.jaredgantt.tvcompanion android.permission.WRITE_SECURE_SETTINGS
     adb shell appops set com.jaredgantt.tvcompanion SYSTEM_ALERT_WINDOW allow
+    adb shell appops set com.jaredgantt.tvcompanion AUTO_START allow   # else TCL never restarts it once killed
     adb shell cmd notification allow_listener com.jaredgantt.tvcompanion/.Listener   # now / media (VOICE.md)
 
 The grants persist across reboots and reinstalls with `-r`; a full uninstall loses them.

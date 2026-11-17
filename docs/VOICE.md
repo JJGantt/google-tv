@@ -20,6 +20,13 @@ nothing here talks to the TV directly; Supabase and the hub carry it:
 - **`TvLink`** (the companion app) holds the stream open, reconnecting with backoff from 1 s doubling
   to a minute (cut short when the screen comes on), and authenticates with the hub's device token (the one `bin/tv sidebar on` pushes).
   Started at boot by `BootReceiver`, and by `bin/tv link`.
+  When the system kills the process, TCL's `TclAppBoot` refuses to restart its services unless the app
+  holds the `AUTO_START` app-op (CAPABILITIES.md § Companion app). Without it the app stays dead while the
+  TV is on: every command answers `the TV is off, or its app is not connected`, and `open` answers
+  `the TV app never answered the open` even though the Pi's follow-up opened the title anyway. logcat
+  shows `[TclAppBoot]:forbid restart service ... callee_does't_have_OP_AUTO_START_permission`. The
+  refused services stay stuck as "Restarting" in `dumpsys activity services`, where `bin/tv link` alone
+  does not start them: `bin/tv shell am force-stop com.jaredgantt.tvcompanion`, then `bin/tv link`.
   A hub deploy closes the stream (`link: java.io.EOFException` in logcat, then `link: connected`
   about 13 s later), and commands in that gap answer `the TV is off, or its app is not connected`
   while the TV is on; `bin/tv shell dumpsys power | grep mWakefulness` tells the two apart.
