@@ -241,7 +241,7 @@ public class TvLink extends Service {
         return Math.max(0, p);
     }
 
-    /** Play, pause or toggle whatever is playing, through its media session (the same grant `now` uses).
+    /** Play or pause whatever is playing, through its media session (the same grant `now` uses).
      *  Answers with `now` afterwards. Nothing that seeks: a position is the app's claim extrapolated
      *  (positionMs), which is wrong whenever the app's claim is. */
     private JSONObject media(String action) throws Exception {
@@ -252,13 +252,6 @@ public class TvLink extends Service {
         switch (action) {
             case "play": t.play(); break;
             case "pause": t.pause(); break;
-            // Decided here, at the moment of the press, from the session's own state: a remote's caller
-            // (the watch) cannot know it in time, since its last read can be from before the tap.
-            case "toggle": {
-                PlaybackState st = mc.getPlaybackState();
-                if (st != null && st.getState() == PlaybackState.STATE_PLAYING) t.pause(); else t.play();
-                break;
-            }
             default: return r.put("ok", false).put("error", "unknown action " + action);
         }
         // The app applies it asynchronously; read back once it has had a moment to.
