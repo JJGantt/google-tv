@@ -50,7 +50,7 @@ home screen. The lock is released with `ON_AFTER_RELEASE`, which restarts the id
 
 **Choosing what to put on** is the `youtube` and `catalog` tools: WATCHING.md.
 
-`media` is `play` and `pause` on whatever is playing, through its media session, the same grant `now`
+`media` is `play`, `pause` and `toggle` on whatever is playing (`toggle` is the watch remote's button, decided from the session's state at the moment it arrives), through its media session, the same grant `now`
 uses. It answers with `now`. With nothing playing or paused it answers `nothing is playing`. There is
 no skip or seek: a session's position is its app's last report plus the time since, so an app that
 says it is playing when it is not turns a seek into a jump to nowhere. Anything beyond play and pause
