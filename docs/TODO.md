@@ -54,6 +54,20 @@ bigger items are in [IDEAS.md](IDEAS.md); what is already proven is in
   open Apple TV. Hulu's catalog link is a `PLAY_CONTENT` intent and Max's a `/video/watch/` URL, with
   no details form derivable from either. The year is in catalog `title`'s first line but is not stored
   on `tv_shelf_items`.
+- **Seek: jump back or forward N seconds, or to a time.** Asked for; nothing does it today, and
+  sessions improvise with remote keys, which fails. Measured in Prime Video on this TV:
+  `media_fast_forward` (and by the same mechanism `media_rewind`) pauses the film and starts a
+  continuous scrub that keeps running at speed until something stops it — never a fixed jump, so it
+  must not be used for "back 30 seconds". `back` cancels the scrub and leaves the film paused where
+  it was. The `time=<s>` parameter of a Prime `watch?asin=` link is ignored on a fresh open (asked for
+  270, started at 0). The route that should work: `TransportControls.seekTo` from the companion app,
+  which already holds the MediaController `media` uses. Prime's session advertises `ACTION_SEEK_TO`
+  (actions 1049455 has 0x100). Relative seek = current position ± delta; then read the reported
+  position back and fail unless it moved by about the delta. Not yet tried on any app.
+- **Catalog: Prime's link for Road House (2024) is an ASL edition.** JustWatch's `amazonprime` offer
+  is ASIN B0GPFNW1GP, which Amazon lists as "Sign language interpretation"; the standard edition is
+  B0FFPD5WVX (its page lists it as "Original version"), which is the ASIN JustWatch gives for the
+  *buy* offer. Other titles may have the same problem; the catalog takes the offer's link as is.
 - **Voice: inputs.** Power is done (POWER.md); switching inputs can ride the same Pi-side path
   (`tvHome.ts` running `bin/tv input`).
 
