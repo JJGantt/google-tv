@@ -38,6 +38,10 @@ nothing here talks to the TV directly; Supabase and the hub carry it:
 `launch`, `sidebar`, `overlay`, `now`, `media`, `input`, `key`, `sleep` (the Pi's: POWER.md § Sleep timer), and `guide_refresh` (sent by the `tv_guide` tool after a write: an open TV Guide redraws, GUIDE.md). Verified end to end on 2026-10-30 for `brightness` (read) and
 `now` (app, title, position); the rest run the same code paths `bin/tv` proved, from inside the app.
 
+`volume` takes `value` (a level) or `step` (relative to the level the TV is at when the command
+arrives, which is what the watch remote's buttons and crown send), and either is walked a step at a
+time (CAPABILITIES.md: TCL ignores a direct set). It answers with the level reached.
+
 `now` reads media sessions, which Android allows to an enabled notification listener:
 
     adb shell cmd notification allow_listener com.jaredgantt.tvcompanion/.Listener

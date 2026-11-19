@@ -209,8 +209,11 @@ public class TvLink extends Service {
     private int volume(JSONObject a) throws Exception {
         AudioManager am = getSystemService(AudioManager.class);
         int cur = am.getStreamVolume(AudioManager.STREAM_MUSIC);
-        if (a.has("value")) {
-            int target = Math.max(0, Math.min(am.getStreamMaxVolume(AudioManager.STREAM_MUSIC), a.getInt("value")));
+        // `step` is relative to the level the TV is at when the command arrives: the watch remote's
+        // buttons and crown, which mean "louder than now" whatever the watch last heard.
+        if (a.has("value") || a.has("step")) {
+            int want = a.has("value") ? a.getInt("value") : cur + a.getInt("step");
+            int target = Math.max(0, Math.min(am.getStreamMaxVolume(AudioManager.STREAM_MUSIC), want));
             while (cur != target) {
                 am.adjustStreamVolume(AudioManager.STREAM_MUSIC, target > cur ? AudioManager.ADJUST_RAISE : AudioManager.ADJUST_LOWER, 0);
                 int next = am.getStreamVolume(AudioManager.STREAM_MUSIC);
