@@ -82,7 +82,10 @@ second later, so an open lands in its app and then ends on the cast video. The a
 without error either way. So every `open` whose app is known (its `app`, or the `package=` in an
 `intent:` link) starts its follow-up with `bin/tv front`: 4 s on, if another app is in front, it stops
 that app's playback (`cmd media_session dispatch stop`) and opens the link again over adb, then reads
-the foreground again. An open that still ends with another app in front answers `ok: false` naming
+the foreground again. The stop is sent only when the app in front has a media session of its own:
+`dispatch stop` goes to whichever app played last, not to the app in front, so when the launcher covers
+the target (it does on a wake from off) a stop would halt the video the open had just started, and the
+reopen would bring it back stopped. An open that still ends with another app in front answers `ok: false` naming
 both, whatever sound is coming out. Stopping the cast is the expected way past the relaunch; it has not
 yet been watched working on a live cast session.
 

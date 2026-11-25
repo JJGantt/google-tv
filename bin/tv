@@ -362,8 +362,11 @@ def front(app, url, seconds="4"):
     """After an open of URL into APP: whether APP is in front `seconds` later, as one JSON line. A Cast
     session (YouTube cast from a phone) puts its app back in front about a second after another app
     covers it, so an open that started fine can still end on the cast video. When something else is in
-    front, its playback is stopped (the media-button session, which is the app holding the screen) and
-    the URL opened again from here, then the foreground read once more."""
+    front, its playback is stopped and the URL opened again from here, then the foreground read once
+    more. The stop goes to the media-button session, which is whichever app played last, not the one
+    in front: so it is sent only when the app in front has a media session of its own. When the
+    launcher covers the target (a wake from off), the last player is the target itself, and a stop
+    would halt the video this open just started."""
     import json
     pkg = APPS.get(app, app)
     time.sleep(float(seconds))
@@ -371,7 +374,9 @@ def front(app, url, seconds="4"):
     out = {"target": pkg}
     if fg and fg != pkg:
         out["displaced_by"] = fg
-        sh("cmd", "media_session", "dispatch", "stop")
+        if re.search(rf"\bpackage={re.escape(fg)}(?=\s|$)", sh("dumpsys", "media_session")):
+            sh("cmd", "media_session", "dispatch", "stop")
+            out["stopped"] = True
         time.sleep(1)
         _start(url)
         time.sleep(float(seconds))
