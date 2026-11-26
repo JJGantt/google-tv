@@ -4,14 +4,30 @@ The aim: any Claude (a session, or the voice assistant) can look through everyth
 account, recommend from actual watch history rather than from each service's algorithm, and put it
 on the bedroom TV. This is an evolving feature; open work is in TODO.md § Watching.
 
-Three data MCP tools (data-layer) and one TV op:
+Three data MCP tools (data-layer) and two TV ops:
 
 | Tool | What it gives | Where it runs |
 |---|---|---|
 | `youtube` public ops | `search`, `video` (full description, chapters), `related`, `channel` (newest uploads) | anywhere: parsed from the JSON YouTube embeds in its pages |
-| `youtube` account ops | `history`, `home` (account recommendations), `subscriptions`, `subscription_feed`, `watch_later`, `liked`, `playlists`, `playlist` | the Pi only, through `home_requests` |
+| `youtube` account ops, API | `subscriptions`, `liked`, `playlists`, `playlist`, and the writes `like`, `unlike`, `subscribe`, `unsubscribe`, `create_playlist`, `add_to_playlist` | anywhere: the YouTube Data API over OAuth (data-layer README § YouTube) |
+| `youtube` account ops, browser | `history`, `home` (account recommendations), `subscription_feed`, `watch_later` | the Pi, else the Mac, through `home_requests` |
 | `catalog` | `search`, `title`, `episodes`, `popular`, `added` across Netflix, Prime Video, Apple TV+, Disney+, Hulu, Max and the rest, each offer with an Android TV deep link | anywhere: JustWatch's GraphQL API |
 | `bedroom_tv` `open` | plays a YouTube URL, or opens a catalog deep link in its app | the TV's app (VOICE.md) |
+| `bedroom_tv` `played` | the play log: what played on the TV, newest first, how much of each was watched | Supabase `tv_plays` (below) |
+
+## The play log
+
+`app/…/PlayWatcher.java` registers for the TV's media sessions (the same notification-listener grant
+`now` uses) and is called back on every session added or removed, title change and play/pause. A title
+that holds for 8 s is posted as `start` to the hub's `/api/tv/play`; pauses post `update` and a new
+title, the session going away or the screen going off post `end`, each with `watched_s`, the furthest
+position seen. The hub writes data-layer's `tv_plays` (00203), and links a play to the `open` command it
+followed in the previous three minutes (status-hub `lib/tvplay.js`), which is where `url` and `video_id`
+come from; a play he started himself has only the app's title and channel.
+
+It records every app, whoever started it, so it is the record of what he watched in Netflix and Prime as
+well as YouTube, and what keeps a pick from repeating. It cannot see his phone: what he watches there
+reaches only YouTube's own `history`.
 
 ## YouTube, public
 
@@ -26,10 +42,12 @@ YouTube's own player mints. Chapters and the description are the content signal 
 
 ## YouTube, the signed-in account
 
-`data-layer/src/youtubeAccount.ts`, on the Pi only, reached through `home_requests`; how it signs in is
-described there. The bedroom TV's YouTube is on the same account, so its plays are in `history` with how
-much of each was watched. "not signed in" from every account op means the Pi browser needs signing back
-in (pi-browser README).
+Subscriptions, likes and playlists come from the YouTube Data API (`data-layer/src/youtubeApi.ts`),
+which needs no browser. History, home recommendations, the subscription feed and Watch Later are not in
+the API, so `data-layer/src/youtubeAccount.ts` reads them through a signed-in browser, reached through
+`home_requests`: the Pi's automation browser, else the Mac's on-demand profile. History covers every
+device on the account, his phone included. "not signed in" means that machine's browser needs signing
+back in (pi-browser README; the Mac's profile is data-layer `YT_BROWSER_PROFILE`).
 
 ## The catalog
 

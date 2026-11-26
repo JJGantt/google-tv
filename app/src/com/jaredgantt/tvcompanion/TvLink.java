@@ -44,6 +44,8 @@ public class TvLink extends Service {
     private volatile long backoff = 1000;
     // A top-level class: this d8 (build-tools 34) fails on any nested class javac 21 emits.
     private final ScreenOn screenOn = new ScreenOn(this::retryNow);
+    private PlayWatcher plays;
+    private ScreenOn screenOff;
 
     private void retryNow() {
         backoff = 1000;
@@ -58,6 +60,10 @@ public class TvLink extends Service {
         if (loop == null) {
             running = true;
             registerReceiver(screenOn, new IntentFilter(Intent.ACTION_SCREEN_ON));
+            plays = new PlayWatcher(this);
+            plays.start();
+            screenOff = new ScreenOn(plays::screenOff);
+            registerReceiver(screenOff, new IntentFilter(Intent.ACTION_SCREEN_OFF));
             loop = new Thread(this::listen, "tv-link");
             loop.start();
         }
@@ -324,6 +330,7 @@ public class TvLink extends Service {
     public void onDestroy() {
         running = false;
         if (loop != null) unregisterReceiver(screenOn);
+        if (screenOff != null) unregisterReceiver(screenOff);
     }
 
     @Override

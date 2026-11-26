@@ -4,7 +4,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 
-/** Runs `then` each time the screen turns on (registered at runtime by TvLink). */
+/** Runs `then` each time the screen turns on or off, whichever action TvLink registers it for. */
 public class ScreenOn extends BroadcastReceiver {
     private final Runnable then;
 
