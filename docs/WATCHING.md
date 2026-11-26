@@ -51,7 +51,7 @@ marked "(his)". **Not set yet**: TODO.md § Blocked on the owner.
 
 | Service | Deep link | Signed in on the TV | Result |
 |---|---|---|---|
-| YouTube | watch URL | yes | plays at once |
+| YouTube | watch URL | yes | the video's page, paused; the Pi presses OK (below) |
 | Prime Video | catalog `intent://watch.amazon.com/…` | yes | the title page, "Play S1 E1"; when Prime was not already running, its "Who's watching?" profile picker first (below) |
 | Apple TV | catalog `intent://tv.apple.com/…` | yes, Apple TV+ (signed in 2026-11-06) | the title page; the Pi presses its Play (below). Before sign-in its button was "Accept Free Trial" |
 | Netflix | catalog `intent://www.netflix.com/…` | **no** | Google's "Choose an account to continue to Netflix" sign-in sheet |
@@ -75,6 +75,12 @@ then reads the screen again and fails if the picker is still there; a failure, o
 capture was blank (DRM playback captures as solid black), is logged as an error by data-http. OK is
 never pressed on anything but the picker, because on a rental's title page the focused button is the
 purchase.
+
+**YouTube lands paused.** A watch URL opened into YouTube shows the video's page with the player
+stopped, and nothing starts until OK is pressed. So `bin/tv check` with `play` 1 (every open's
+follow-up, and `media play`) waits up to 6 s for sound from a YouTube in front, then presses OK once
+and waits again; the press shows as `pressed: "select"` in the result. Six seconds, not at once,
+because OK on a video that is already starting pauses it.
 
 **A Cast session takes the screen back.** While a video cast from a phone is playing in YouTube,
 covering YouTube makes the Cast receiver (`com.google.android.apps.mediashell`) relaunch it about a

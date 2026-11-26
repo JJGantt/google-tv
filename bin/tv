@@ -568,18 +568,37 @@ def check(apple="0", play="0", wait="0", delay="0"):
     """What is really playing, as one JSON line (data-layer tvHome.ts reads it after every open, and on
     `now` and `media`): Apple TV's title page if `apple` is 1 (pressing Play on it if `play` is 1), then
     the foreground app and whether it is sending sound, waiting up to `wait` seconds for that to start,
-    after `delay` seconds (a pause's last sound is still going out as it answers)."""
+    after `delay` seconds (a pause's last sound is still going out as it answers).
+    With `play` 1, a YouTube that is in front and still silent YOUTUBE_PRESS_AFTER seconds in gets one
+    OK press (DPAD_CENTER): a watch URL opened into it lands on the video's page paused, and OK there is
+    Play. The press is reported as `pressed`, and the wait for sound starts again after it."""
     import json
     time.sleep(float(delay))
     out = apple_title_page(play == "1", 15.0) if apple == "1" else {}
-    end = time.time() + float(wait)
-    while True:
-        pkg = foreground()
-        flowing = bool(pkg) and audio_flowing(pkg)
-        if flowing or time.time() >= end:
-            break
-        time.sleep(1)
+
+    def wait_for_sound(seconds):
+        end = time.time() + seconds
+        while True:
+            pkg = foreground()
+            flowing = bool(pkg) and audio_flowing(pkg)
+            if flowing or time.time() >= end:
+                return pkg, flowing
+            time.sleep(1)
+
+    youtube = APPS["youtube"]
+    first = min(float(wait), YOUTUBE_PRESS_AFTER) if play == "1" else float(wait)
+    pkg, flowing = wait_for_sound(first)
+    if play == "1" and not flowing and pkg == youtube:
+        key("select")
+        out["pressed"] = "select"
+        pkg, flowing = wait_for_sound(max(float(wait) - first, YOUTUBE_AFTER_PRESS))
     print(json.dumps({**out, "foreground": pkg, "playing": flowing}))
+
+
+# How long a silent YouTube is given to start on its own before OK is pressed: OK on a video that is
+# already starting pauses it.
+YOUTUBE_PRESS_AFTER = 6.0
+YOUTUBE_AFTER_PRESS = 10.0
 
 
 APP = "com.jaredgantt.tvcompanion"
